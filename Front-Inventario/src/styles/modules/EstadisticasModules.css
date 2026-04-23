@@ -1,0 +1,41 @@
+.estadisticas-module {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.chart-section {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.chart-wrapper {
+  margin-top: 1rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.stats-card {
+  background: linear-gradient(145deg, #ffffff, #e5e7eb);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  text-align: center;
+  box-shadow: 5px 5px 15px rgba(0,0,0,0.05);
+}
+
+.stats-card h3 {
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.stats-card p {
+  font-weight: bold;
+  color: #f97316;
+  font-size: 1.25rem;
+}

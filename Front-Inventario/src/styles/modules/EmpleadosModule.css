@@ -1,0 +1,320 @@
+/* EMPLEADOSMODULE.CSS */
+
+/* Contenedor Principal */
+.empleados-view {
+  padding: 2rem;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Cabecera */
+.empleados-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header-info h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.75rem;
+}
+
+.header-info p {
+  margin: 0.5rem 0 0;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+/* Botones Principales */
+.btn-primario, .btn-guardar {
+  background-color: #0284c7;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-primario:hover, .btn-guardar:hover {
+  background-color: #0369a1;
+}
+
+/* Botón secundario (Cancelar) */
+.btn-secundario {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secundario:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Tarjeta del Formulario */
+.empleado-form-card {
+  background-color: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+  border: 1px solid #e2e8f0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+}
+
+.form-seccion h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #334155;
+  font-size: 1.1rem;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 0.5rem;
+}
+
+.input-group {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.input-group input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  outline: none;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+  border-color: #0284c7;
+}
+
+/* Sección de Permisos */
+.permisos-container {
+  background-color: #f8fafc;
+  padding: 1.25rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.permisos-container h4 {
+  margin: 0 0 1rem 0;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  color: #334155;
+}
+
+.checkbox-label input {
+  margin-right: 0.75rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: #0284c7;
+}
+
+.form-actions {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1.5rem;
+}
+
+/* Tabla */
+.tabla-container {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+}
+
+.tabla-empleados {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.tabla-empleados th {
+  background-color: #f8fafc;
+  padding: 1rem 1.5rem;
+  color: #475569;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tabla-empleados td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.fw-bold { font-weight: 600; color: #0f172a; }
+.text-muted { color: #64748b; font-size: 0.9rem; }
+.text-center { text-align: center; color: #64748b; padding: 2rem !important; }
+
+/* Etiquetas de Permisos (Badges) */
+.celda-permisos {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-ventas { background-color: #dcfce7; color: #166534; }
+.badge-inventario { background-color: #e0f2fe; color: #075985; }
+.badge-proveedores { background-color: #f3e8ff; color: #6b21a8; }
+.badge-ninguno { background-color: #f1f5f9; color: #64748b; }
+
+/* Estado Activo/Inactivo */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.status-dot.activo { background-color: #22c55e; }
+.status-dot.inactivo { background-color: #ef4444; }
+
+/* Botones de acción de texto (Reemplazo de los emojis) */
+.celda-acciones {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.btn-texto {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  margin: 0 0.2rem;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-texto-editar {
+  color: #0284c7;
+}
+.btn-texto-editar:hover {
+  background-color: #f0f9ff;
+  color: #0369a1;
+}
+
+.btn-texto-eliminar {
+  color: #ef4444;
+}
+.btn-texto-eliminar:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+/* Modal de Confirmación */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: #0f172a;
+}
+
+.modal-content p {
+  color: #475569;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.texto-advertencia {
+  color: #ef4444 !important;
+  font-size: 0.85rem !important;
+  margin-bottom: 2rem !important;
+}
+
+.modal-acciones {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.btn-peligro {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  flex: 1;
+}
+
+.btn-peligro:hover {
+  background-color: #dc2626;
+}
+
+.modal-acciones .btn-secundario {
+  flex: 1;
+}
+
+/* Responsive Grid */
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .input-group {
+    flex-direction: column;
+  }
+}

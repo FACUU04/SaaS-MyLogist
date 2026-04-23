@@ -1,0 +1,335 @@
+/* VENTASMODULE.CSS */
+
+* {
+  box-sizing: border-box;
+}
+
+.ventas-module {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.ventas-header {
+  margin-bottom: 0.5rem;
+}
+
+.ventas-header h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+/* ---------------- Formulario de Nueva Venta ---------------- */
+.form-panel {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.form-row-ventas {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-row-ventas:last-child {
+  margin-bottom: 0;
+}
+
+.input-group-ventas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.input-group-ventas.flex-2 { flex: 2; }
+.input-group-ventas.flex-1 { flex: 1; }
+
+.input-group-ventas label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* Ajustes para React-Select */
+.react-select__control {
+  border-color: #cbd5e1 !important;
+  border-radius: 0.5rem !important;
+  min-height: 42px !important;
+  box-shadow: none !important;
+}
+
+.react-select__control--is-focused {
+  border-color: #f97316 !important;
+}
+
+.stock-hint {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.stock-hint strong {
+  color: #0f172a;
+}
+
+/* Control de Cantidad y Botón Añadir */
+.cantidad-input-wrapper {
+  display: flex;
+  gap: 0.5rem;
+  height: 42px;
+}
+
+.cantidad-input-wrapper input {
+  flex: 1;
+  min-width: 60px;
+  padding: 0.5rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.cantidad-input-wrapper input:focus {
+  outline: none;
+  border-color: #f97316;
+}
+
+.btn-agregar-producto {
+  background-color: #1e293b;
+  color: white;
+  border: none;
+  padding: 0 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-agregar-producto:hover:not(:disabled) {
+  background-color: #334155;
+}
+
+.btn-agregar-producto:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* ---------------- Panel del Ticket ---------------- */
+.ticket-panel {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+}
+
+.ticket-title {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #0f172a;
+  font-size: 1.1rem;
+  border-bottom: 2px solid #f8fafc;
+  padding-bottom: 0.5rem;
+}
+
+.ticket-footer {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-lg {
+  padding: 0.85rem 2rem;
+  font-size: 1.05rem;
+}
+
+/* ---------------- Tablas (Registro y Ticket) ---------------- */
+.table-responsive-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+}
+
+.ventas-table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+}
+
+.ticket-table {
+  min-width: 400px; /* La del ticket puede ser más angosta */
+}
+
+.ventas-table thead {
+  background-color: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.ventas-table th {
+  color: #475569;
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.ventas-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #1e293b;
+  vertical-align: middle;
+  font-size: 0.95rem;
+}
+
+.ventas-table tr:hover {
+  background-color: #f1f5f9;
+}
+
+.celda-vacia {
+  text-align: center !important;
+  padding: 2rem !important;
+  color: #64748b !important;
+  font-style: italic;
+}
+
+.celda-importe {
+  font-weight: 700;
+  color: #0f172a !important;
+}
+
+.texto-muted {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Detalles de lista en la tabla de registros */
+.lista-detalles-mini {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.lista-detalles-mini li {
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.cant-mini {
+  background-color: #e2e8f0;
+  color: #334155;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.2rem;
+  font-weight: 600;
+  margin-right: 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* ---------------- Modal del Ticket Final ---------------- */
+.modal-ticket {
+  max-width: 450px !important;
+}
+
+.ticket-body {
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px dashed #cbd5e1;
+}
+
+.ticket-cliente-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.ticket-lista-final {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ticket-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ticket-item-desc {
+  display: flex;
+  flex-direction: column;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.ticket-item-desc small {
+  color: #64748b;
+  font-weight: 400;
+}
+
+.ticket-item-subtotal {
+  color: #0f172a;
+}
+
+.ticket-total-final {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 2px solid #e2e8f0;
+}
+
+.ticket-total-final span {
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+.ticket-total-final h2 {
+  margin: 0;
+  color: #f97316;
+  font-size: 1.75rem;
+}
+
+.alerta-suave {
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #c2410c;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* ---------------- Responsive ---------------- */
+@media screen and (max-width: 768px) {
+  .form-row-ventas {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .buscador-producto-row {
+    flex-direction: column;
+  }
+  
+  .ticket-footer button {
+    width: 100%;
+  }
+}

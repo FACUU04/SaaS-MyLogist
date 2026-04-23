@@ -1,0 +1,376 @@
+/* Dashboard.css - Sistema Responsive */
+
+* {
+  box-sizing: border-box;
+}
+
+/* ---------------- Contenedor principal ---------------- */
+.dashboard-container {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden; /* Evita scrolls dobles */
+  background-color: #f8fafc;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+/* ---------------- Sidebar (PC: Izquierda / Mobile: Abajo) ---------------- */
+.sidebar {
+  width: 260px;
+  background-color: #1e293b;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.25rem;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.sidebar-logo {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #f97316;
+  margin-bottom: 2.5rem;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar li {
+  display: flex;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  color: #cbd5e1;
+}
+
+.sidebar li:hover {
+  background-color: #334155;
+  color: #ffffff;
+}
+
+.sidebar li.active {
+  background-color: #f97316;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.2);
+}
+
+.sidebar li .icon {
+  margin-right: 1rem;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------------- Main Content ---------------- */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* ---------------- Topbar ---------------- */
+.topbar {
+  height: 70px;
+  min-height: 70px;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar .user-info {
+  font-size: 0.95rem;
+  color: #334155;
+  font-weight: 500;
+}
+
+.topbar button {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.topbar button:hover {
+  background-color: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+/* ---------------- Contenido dashboard ---------------- */
+.dashboard-content {
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  align-content: flex-start;
+}
+
+/* ---------------- Card Global ---------------- */
+.card {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.card h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #0f172a;
+  font-size: 1.15rem;
+}
+
+/* ---------------- Info negocio ---------------- */
+.negocio-info {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+
+.negocio-info h4 {
+  color: #f97316;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+/* ---------------- Lista bajo stock (Scroll horizontal en mobile) ---------------- */
+.bajo-stock-container {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.bajo-stock-list {
+  display: flex;
+  gap: 1rem;
+  padding: 0.25rem;
+}
+
+.bajo-stock-card {
+  flex: 0 0 220px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.bajo-stock-card h5 {
+  color: #9a3412;
+  font-size: 1rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.bajo-stock-card p {
+  color: #c2410c;
+  font-size: 0.9rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* ---------------- Notas ---------------- */
+.notas-container {
+  grid-column: 1 / -1;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.notas-container h3 {
+  font-size: 1.25rem;
+  color: #0f172a;
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+}
+
+.nota-input {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.nota-input input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  font-size: 1rem;
+  background-color: #f8fafc;
+}
+
+.nota-input input:focus {
+  outline: none;
+  border-color: #f97316;
+}
+
+.nota-input button {
+  background-color: #f97316;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.nota-input button:hover {
+  background-color: #ea580c;
+}
+
+.notas-container ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notas-container li {
+  background-color: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #92400e;
+  font-weight: 500;
+}
+
+.notas-container li button {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+/* =========================================
+   Responsive: Tablet y Celulares
+   ========================================= */
+@media screen and (max-width: 1024px) {
+  .sidebar { width: 220px; }
+  .dashboard-content { grid-template-columns: 1fr; }
+}
+
+@media screen and (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+
+  /* El contenido debe dejar espacio libre abajo para la barra de navegación */
+  .main-content {
+    padding-bottom: 80px; 
+  }
+
+  .topbar {
+    padding: 0 1.25rem;
+  }
+
+  .dashboard-content {
+    padding: 1.25rem;
+    gap: 1.25rem;
+  }
+
+  /* Transformación del Sidebar a Bottom Navigation Bar */
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 75px;
+    padding: 0.5rem;
+    flex-direction: row;
+    background-color: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .sidebar-logo {
+    display: none; /* Ocultamos el logo para ahorrar espacio en la barra */
+  }
+
+  .sidebar ul {
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+  }
+
+  .sidebar li {
+    flex-direction: column;
+    padding: 0.4rem;
+    border-radius: 0.5rem;
+    color: #64748b;
+    font-size: 0.75rem;
+  }
+
+  .sidebar li:hover {
+    background-color: transparent;
+    color: #f97316;
+  }
+
+  .sidebar li.active {
+    background-color: #fff7ed;
+    color: #f97316;
+    box-shadow: none;
+  }
+
+  .sidebar li .icon {
+    margin-right: 0;
+    margin-bottom: 0.25rem;
+    font-size: 1.35rem;
+  }
+
+  /* Ajustes en Notas para celular */
+  .nota-input {
+    flex-direction: column;
+  }
+  
+  .nota-input button {
+    width: 100%;
+  }
+}
+
