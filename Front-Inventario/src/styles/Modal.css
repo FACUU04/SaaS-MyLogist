@@ -10,7 +10,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(15, 23, 42, 0.75); /* Slate oscuro con transparencia */
+  background-color: rgba(15, 23, 42, 0.75); 
   display: flex;
   justify-content: center;
   align-items: center;
@@ -23,20 +23,18 @@
   border-radius: 1rem;
   width: 100%;
   max-width: 500px;
-  max-height: 90vh; /* Evita que el modal se salga de la pantalla */
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   animation: modalScale 0.2s ease-out;
-  overflow: hidden; /* Mantiene los bordes redondeados limpios */
+  overflow: hidden; 
 }
 
-/* Modal específico si necesitas anchos diferentes */
 .modal-negocio {
   max-width: 450px;
 }
 
-/* ---------------- Estructura Interna del Modal ---------------- */
 .modal-header {
   padding: 1.5rem;
   border-bottom: 1px solid #e2e8f0;
@@ -50,13 +48,15 @@
   font-weight: 700;
 }
 
-/* El body contiene el formulario y es el ÚNICO que hace scroll */
+/* FIX DEFINITIVO: Obliga a scrollear limitando la altura */
 .modal-body {
   padding: 1.5rem;
+  max-height: 60vh; /* Altura máxima estricta para obligar al scroll interno */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  -webkit-overflow-scrolling: touch; 
 }
 
 .modal-footer {
@@ -68,7 +68,6 @@
   background-color: #f8fafc;
 }
 
-/* ---------------- Elementos del Formulario ---------------- */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -103,7 +102,6 @@
   background-color: #ffffff;
 }
 
-/* ---------------- Botones ---------------- */
 .btn-primario {
   background-color: #f97316;
   color: white;
@@ -115,9 +113,7 @@
   transition: background-color 0.2s ease;
 }
 
-.btn-primario:hover {
-  background-color: #ea580c;
-}
+.btn-primario:hover { background-color: #ea580c; }
 
 .btn-secundario {
   background-color: #1e293b;
@@ -130,9 +126,7 @@
   transition: background-color 0.2s ease;
 }
 
-.btn-secundario:hover {
-  background-color: #334155;
-}
+.btn-secundario:hover { background-color: #334155; }
 
 .btn-cancelar {
   background-color: transparent;
@@ -150,30 +144,13 @@
   color: #334155;
 }
 
-/* ---------------- Animaciones ---------------- */
 @keyframes modalScale {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* ---------------- Responsive Móvil ---------------- */
 @media screen and (max-width: 600px) {
-  .modal-overlay {
-    padding: 0.75rem;
-  }
-
-  .modal-footer {
-    flex-direction: column-reverse;
-  }
-
-  .modal-footer button {
-    width: 100%;
-    padding: 0.85rem;
-  }
+  .modal-overlay { padding: 0.75rem; }
+  .modal-footer { flex-direction: column-reverse; }
+  .modal-footer button { width: 100%; padding: 0.85rem; }
 }

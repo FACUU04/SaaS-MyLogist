@@ -1,4 +1,4 @@
-/* Dashboard.css - Sistema Responsive */
+/* Dashboard.css - Sistema Responsive Definitivo */
 
 * {
   box-sizing: border-box;
@@ -10,7 +10,7 @@
   flex-direction: row;
   height: 100vh;
   width: 100vw;
-  overflow: hidden; /* Evita scrolls dobles */
+  overflow: hidden; 
   background-color: #f8fafc;
   font-family: 'Inter', 'Segoe UI', sans-serif;
 }
@@ -172,7 +172,7 @@
   font-size: 1.1rem;
 }
 
-/* ---------------- Lista bajo stock (Scroll horizontal en mobile) ---------------- */
+/* ---------------- Lista bajo stock ---------------- */
 .bajo-stock-container {
   width: 100%;
   overflow-x: auto;
@@ -207,6 +207,19 @@
   font-weight: 600;
 }
 
+/* ---------------- TABLAS RESPONSIVE ---------------- */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; 
+  padding-bottom: 0.5rem; 
+}
+
+.table-compras {
+  min-width: 600px; 
+  border-collapse: collapse;
+}
+
 /* ---------------- Notas ---------------- */
 .notas-container {
   grid-column: 1 / -1;
@@ -229,13 +242,19 @@
   margin-bottom: 1.5rem;
 }
 
+/* FIX: Contraste forzado universal */
 .nota-input input {
   flex: 1;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   border: 1px solid #cbd5e1;
   font-size: 1rem;
-  background-color: #f8fafc;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.nota-input input::placeholder {
+  color: #64748b !important;
 }
 
 .nota-input input:focus {
@@ -300,9 +319,8 @@
     flex-direction: column;
   }
 
-  /* El contenido debe dejar espacio libre abajo para la barra de navegación */
   .main-content {
-    padding-bottom: 80px; 
+    padding-bottom: calc(85px + env(safe-area-inset-bottom)); 
   }
 
   .topbar {
@@ -314,37 +332,46 @@
     gap: 1.25rem;
   }
 
-  /* Transformación del Sidebar a Bottom Navigation Bar */
   .sidebar {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 75px;
-    padding: 0.5rem;
+    min-height: 75px;
+    height: auto;
+    padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom)) 0.5rem;
     flex-direction: row;
     background-color: #ffffff;
     border-top: 1px solid #e2e8f0;
     box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+    box-sizing: border-box; 
   }
 
   .sidebar-logo {
-    display: none; /* Ocultamos el logo para ahorrar espacio en la barra */
+    display: none; 
   }
 
+  /* FIX: Alineación exacta de los 6 botones */
   .sidebar ul {
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
     width: 100%;
+    gap: 2px; 
   }
 
   .sidebar li {
+    flex: 1; /* Todos miden igual */
+    display: flex;
     flex-direction: column;
-    padding: 0.4rem;
+    justify-content: center;
+    align-items: center;
+    padding: 0.35rem 0.1rem; 
     border-radius: 0.5rem;
     color: #64748b;
-    font-size: 0.75rem;
+    font-size: 0.65rem; 
+    text-align: center;
+    min-width: 0; /* Previene desbordes */
   }
 
   .sidebar li:hover {
@@ -360,11 +387,10 @@
 
   .sidebar li .icon {
     margin-right: 0;
-    margin-bottom: 0.25rem;
-    font-size: 1.35rem;
+    margin-bottom: 0.2rem;
+    font-size: 1.25rem; 
   }
 
-  /* Ajustes en Notas para celular */
   .nota-input {
     flex-direction: column;
   }
@@ -374,3 +400,32 @@
   }
 }
 
+/* =========================================
+   FIX: Colores de texto forzados y estilos de números
+   ========================================= */
+
+/* Forzar que todo el texto suelto dentro del dashboard sea oscuro */
+.dashboard-content,
+.dashboard-content p,
+.dashboard-content span,
+.dashboard-content td,
+.dashboard-content li,
+.dashboard-content strong {
+  color: #0f172a !important; 
+}
+
+/* Estilo especial para los números gigantes de las cards */
+.card p {
+  color: #0f172a !important;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Las descripciones pequeñas si las hay (ej: umbral) */
+.umbral-info {
+  color: #64748b !important;
+  font-size: 0.9rem;
+  font-weight: normal;
+}

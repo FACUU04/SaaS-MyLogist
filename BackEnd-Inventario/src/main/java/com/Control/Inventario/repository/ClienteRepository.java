@@ -15,4 +15,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     Optional<Cliente> findByIdAndNegocio(Long id, Negocio negocio);
 
     boolean existsByDniAndNegocio(String dni, Negocio negocio);
+
+    // --- NUEVOS MÉTODOS PARA EL DASHBOARD ---
+    long countByNegocioAndActivoTrue(Negocio negocio);
 }

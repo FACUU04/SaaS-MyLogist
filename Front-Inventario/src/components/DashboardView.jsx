@@ -1,41 +1,39 @@
 import React, { useEffect, useState } from "react";
-import { getNegocio, updateNegocio, getNotas, createNota, deleteNota } from "../components/utils/api";
+import { getNegocio, updateNegocio, getNotas, createNota, deleteNota, getDashboardResumen } from "../components/utils/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import HistorialVentas from "../components/UI/HistorialVentas"; 
 import "../styles/Dashboard.css";
 import "../styles/Modal.css";
 
-const DashboardView = ({
-  productos = [],
-  clientes = [],
-  empleados = [],
-  ventas = [],
-  auditoria = [] 
-}) => {
-
-  const safeArray = (data) => (Array.isArray(data) ? data : data?.content ?? []);
-
-  const productosSafe = safeArray(productos);
-  const clientesSafe = safeArray(clientes);
-  const empleadosSafe = safeArray(empleados);
-  const ventasSafe = safeArray(ventas);
-  const auditoriaSafe = safeArray(auditoria); 
-
+const DashboardView = () => {
   const [negocio, setNegocio] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
+
+  // NUEVO ESTADO: El resumen optimizado del backend
+  const [resumen, setResumen] = useState(null);
 
   // ESTADOS DE NOTAS EN BASE DE DATOS
   const [nota, setNota] = useState("");
   const [notas, setNotas] = useState([]);
 
-  // CARGAR NEGOCIO Y NOTAS
+  // --- FIX MULTIPLATAFORMA: BLOQUEAR SCROLL DE FONDO AL ABRIR MODAL ---
+  useEffect(() => {
+    if (mostrarModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => { document.body.style.overflow = "auto"; };
+  }, [mostrarModal]);
+
+  // CARGA INICIAL DE DATOS
   useEffect(() => {
     const cargarDatosIniciales = async () => {
       try {
+        // 1. Cargamos Negocio
         const dataNegocio = await getNegocio();
         const negocioData = Array.isArray(dataNegocio) ? dataNegocio[0] : dataNegocio;
-
         const negocioTransformado = {
           ...negocioData,
           umbralStock: negocioData?.umbral_stock ?? null,
@@ -44,21 +42,24 @@ const DashboardView = ({
         };
         setNegocio(negocioTransformado);
 
+        // 2. Cargamos Notas
         const dataNotas = await getNotas();
         setNotas(Array.isArray(dataNotas) ? dataNotas : []);
 
+        // 3. CARGAMOS EL RESUMEN OPTIMIZADO Y LO IMPRIMIMOS EN CONSOLA
+        const dataResumen = await getDashboardResumen();
+        console.log("👉 ESTO MANDA EL BACKEND:", dataResumen);
+        setResumen(dataResumen);
+
       } catch (err) {
         console.error("Error al cargar datos iniciales:", err);
+        toast.error("Error de conexión con el servidor");
       }
     };
     cargarDatosIniciales();
   }, []);
 
-  // VENTAS ÚLTIMO MES Y TOP PRODUCTOS
-  const hoy = new Date();
-  const haceUnMes = new Date();
-  haceUnMes.setMonth(hoy.getMonth() - 1);
-
+  // Función auxiliar de fecha para la auditoría
   const parseFecha = (fecha) => {
     if (!fecha) return new Date(0);
     if (Array.isArray(fecha)) {
@@ -67,37 +68,7 @@ const DashboardView = ({
     return new Date(fecha);
   };
 
-  const ventasUltimoMes = ventasSafe.filter((v) => {
-    const fechaVenta = parseFecha(v.fecha);
-    return v.fecha && fechaVenta >= haceUnMes && fechaVenta <= hoy;
-  });
-
-  const ventasPorProducto = {};
-  ventasUltimoMes.forEach((venta) => {
-    const detalles = venta.detalleVentas || venta.detalles || [];
-    detalles.forEach((detalle) => {
-      const marca = detalle.marcaProducto || detalle.producto?.marca || "Marca desconocida";
-      const descripcion = detalle.descripcionProducto || detalle.producto?.descripcion || "Sin descripción";
-      const etiqueta = `${marca} — ${descripcion}`;
-      const cantidad = Number(detalle.cantidad || 1);
-      ventasPorProducto[etiqueta] = (ventasPorProducto[etiqueta] || 0) + cantidad;
-    });
-  });
-
-  const topProductos = Object.entries(ventasPorProducto)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-
-  const umbralStock = negocio?.umbralStock ?? null;
-  const productosLista = Array.isArray(productos) ? productos : productos?.content ?? [];
-  const bajoStock = umbralStock !== null
-    ? productosLista.filter((p) => {
-        const stockActual = Number(p?.cantidad_stock ?? 0);
-        return !isNaN(stockActual) && stockActual < umbralStock;
-      })
-    : [];
-
-  // LÓGICA DE NOTAS (BASE DE DATOS)
+  // LÓGICA DE NOTAS
   const agregarNota = async () => {
     if (nota.trim()) {
       try {
@@ -117,22 +88,16 @@ const DashboardView = ({
       setNotas(notas.filter((n) => n.id !== id));
       toast.info("Nota eliminada");
     } catch (err) {
-      toast.error("Error al eliminar la nota (¿Permisos?)");
+      toast.error("Error al eliminar la nota");
     }
-  };
-
-  const validarDatos = (datos) => {
-    if (!datos.nombre || !datos.rubro) {
-      toast.warn("Completá los campos obligatorios.");
-      return false;
-    }
-    return true;
   };
 
   const guardarCambiosNegocio = async (datosActualizados) => {
     try {
-      if (!validarDatos(datosActualizados)) return;
-
+      if (!datosActualizados.nombre || !datosActualizados.rubro) {
+        toast.warn("Completá los campos obligatorios.");
+        return;
+      }
       const payload = {
         id: negocio.id,
         nombre: datosActualizados.nombre,
@@ -142,22 +107,17 @@ const DashboardView = ({
         ticket_cabecera: datosActualizados.ticketCabecera, 
         ticket_pie: datosActualizados.ticketPie            
       };
-
       const actualizado = await updateNegocio(payload);
-
-      const actualizadoTransformado = {
+      setNegocio({
         ...actualizado,
         umbralStock: actualizado?.umbral_stock ?? null,
         ticketCabecera: actualizado?.ticket_cabecera ?? "",
         ticketPie: actualizado?.ticket_pie ?? ""
-      };
-
-      setNegocio(actualizadoTransformado);
+      });
       setMostrarModal(false);
       toast.success("Negocio actualizado correctamente.");
     } catch (err) {
       toast.error("Error al actualizar el negocio.");
-      console.error("Error al actualizar negocio:", err);
     }
   };
 
@@ -171,6 +131,10 @@ const DashboardView = ({
     }
   };
 
+  if (!resumen) {
+    return <div className="dashboard-content"><h2>Cargando panel...</h2></div>;
+  }
+
   return (
     <div className="dashboard-content">
       <ToastContainer position="top-right" autoClose={3000} />
@@ -178,11 +142,11 @@ const DashboardView = ({
 
       {/* 1. CARDS */}
       <div className="cards-container">
-        <div className="card"><h3>Total Productos</h3><p>{productosSafe.length}</p></div>
-        <div className="card"><h3>Clientes</h3><p>{clientesSafe.length}</p></div>
-        <div className="card"><h3>Empleados</h3><p>{empleadosSafe.length}</p></div>
-        <div className="card"><h3>Ventas Totales</h3><p>{ventasSafe.length}</p></div>
-        <div className="card"><h3>Ventas último mes</h3><p>{ventasUltimoMes.length}</p></div>
+        <div className="card"><h3>Total Productos</h3><p>{resumen.totalProductos}</p></div>
+        <div className="card"><h3>Clientes</h3><p>{resumen.totalClientes}</p></div>
+        <div className="card"><h3>Empleados</h3><p>{resumen.totalEmpleados}</p></div>
+        <div className="card"><h3>Ventas Totales</h3><p>{resumen.ventasTotales}</p></div>
+        <div className="card"><h3>Ventas último mes</h3><p>{resumen.ventasUltimoMes}</p></div>
       </div>
 
       <div className="historial-seccion" style={{ marginTop: '30px', marginBottom: '30px' }}>
@@ -193,11 +157,11 @@ const DashboardView = ({
       {/* 2. TOP PRODUCTOS */}
       <div className="top-productos-container">
         <h3>Top Productos Vendidos (último mes)</h3>
-        {topProductos.length > 0 ? (
+        {resumen.topProductos && resumen.topProductos.length > 0 ? (
           <ul className="lista-simple">
-            {topProductos.map(([nombre, cantidad], i) => (
+            {resumen.topProductos.map((p, i) => (
               <li key={i}>
-                <strong>{nombre}</strong>: {cantidad} unidades vendidas
+                <strong>{p.nombre}</strong>: {p.cantidad} unidades
               </li>
             ))}
           </ul>
@@ -210,18 +174,18 @@ const DashboardView = ({
       <div className="bajo-stock-container">
         <h3>
           Productos con Bajo Stock{" "}
-          {umbralStock !== null && <span className="umbral-info">(Umbral: {umbralStock})</span>}
+          {negocio?.umbralStock !== null && <span className="umbral-info">(Umbral: {negocio.umbralStock})</span>}
         </h3>
-        {umbralStock === null ? (
-          <p className="texto-vacio">No hay umbral configurado en los ajustes del negocio.</p>
-        ) : bajoStock.length > 0 ? (
+        {negocio?.umbralStock === null ? (
+          <p className="texto-vacio">No hay umbral configurado en los ajustes.</p>
+        ) : resumen.bajoStock && resumen.bajoStock.length > 0 ? (
           <div className="bajo-stock-list">
-            {bajoStock.map((p) => (
+            {resumen.bajoStock.map((p) => (
               <div key={p.id} className="bajo-stock-card">
                 <h4>{p.nombre}</h4>
                 <p><strong>Marca:</strong> {p.marca}</p>
                 <p><strong>Descripción:</strong> {p.descripcion}</p>
-                <p className="stock-alerta"><strong>Stock Actual:</strong> {p.cantidad_stock ?? p.stock}</p>
+                <p className="stock-alerta"><strong>Stock Actual:</strong> {p.cantidadStock}</p>
               </div>
             ))}
           </div>
@@ -232,8 +196,8 @@ const DashboardView = ({
 
       {/* 4. AUDITORIA */}
       <div className="auditoria-container" style={{ marginTop: '30px' }}>
-        <h3>Historial de Movimientos (Auditoría)</h3>
-        {auditoriaSafe.length > 0 ? (
+        <h3>Historial de Movimientos</h3>
+        {resumen.auditoria && resumen.auditoria.length > 0 ? (
           <div className="table-responsive">
             <table className="table-compras" style={{ width: '100%', textAlign: 'left' }}>
               <thead>
@@ -246,7 +210,7 @@ const DashboardView = ({
                 </tr>
               </thead>
               <tbody>
-                {auditoriaSafe.map((registro) => {
+                {resumen.auditoria.map((registro) => {
                   const fechaFormat = parseFecha(registro.fechaHora).toLocaleString();
                   return (
                     <tr key={registro.id}>
@@ -270,7 +234,7 @@ const DashboardView = ({
         )}
       </div>
 
-      {/* 5. NOTAS (MURO COMPARTIDO DB) */}
+      {/* 5. NOTAS */}
       <div className="notas-container" style={{ marginTop: '30px' }}>
         <h3>Muro de Anotaciones</h3>
         <div className="nota-input">
@@ -299,7 +263,7 @@ const DashboardView = ({
         </ul>
       </div>
 
-      {/* 6. NEGOCIO INFO */}
+      {/* 6. NEGOCIO INFO Y MODAL */}
       {negocio && (
         <div className="negocio-info" style={{ marginTop: '30px' }}>
           <div className="negocio-header">

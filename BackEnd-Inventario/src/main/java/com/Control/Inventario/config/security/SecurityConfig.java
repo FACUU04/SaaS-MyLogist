@@ -60,7 +60,8 @@ public class SecurityConfig {
         // RESTRICCIÓN DE SEGURIDAD: Solo permitimos tu IP de AWS y tu entorno local
         configuration.setAllowedOrigins(List.of(
                 "http://35.175.207.14",
-                "http://localhost:5173", // Entorno de desarrollo React (Vite)
+                "http://localhost:5173",
+                "http://192.168.0.14:5173",
                 "http://localhost"
         ));
 

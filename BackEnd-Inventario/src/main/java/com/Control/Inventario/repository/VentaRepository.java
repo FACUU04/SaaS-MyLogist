@@ -11,13 +11,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDate; // FIX: Cambiado a LocalDate
 import java.util.List;
 
 public interface VentaRepository extends JpaRepository<Venta, Long> {
 
     List<Venta> findByNegocioId(Long negocioId);
 
-    // Consulta paginada con filtros opcionales de mes y año
     @Query("SELECT v FROM Venta v WHERE v.negocioId = :negocioId " +
             "AND (:mes IS NULL OR MONTH(v.fecha) = :mes) " +
             "AND (:anio IS NULL OR YEAR(v.fecha) = :anio)")
@@ -41,13 +41,27 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
             @Param("anio") Integer anio
     );
 
-
-    // Suma el importe de las ventas de un turno específico y un método de pago específico.
-    // Usamos COALESCE para que devuelva 0.0 en lugar de null si no hubo ventas en ese método.
     @Query("SELECT COALESCE(SUM(v.importe), 0) FROM Venta v WHERE v.turno = :turno AND v.metodoPago = :metodoPago")
     BigDecimal sumVentasByTurnoAndMetodoPago(
             @Param("turno") TurnoCaja turno,
             @Param("metodoPago") MetodoPago metodoPago
     );
 
+    // --- NUEVOS MÉTODOS PARA EL DASHBOARD ---
+
+    long countByNegocioId(Long negocioId);
+
+    // FIX: El parámetro ahora es LocalDate
+    @Query("SELECT COUNT(v) FROM Venta v WHERE v.negocioId = :negocioId AND v.fecha >= :fechaDesde")
+    long countVentasRecientes(@Param("negocioId") Long negocioId, @Param("fechaDesde") LocalDate fechaDesde);
+
+    // FIX: El parámetro ahora es LocalDate
+    @Query("SELECT p.marca, p.descripcion, SUM(d.cantidad) AS total " +
+            "FROM DetalleVenta d " +
+            "JOIN d.venta v " +
+            "JOIN d.producto p " +
+            "WHERE v.negocioId = :negocioId AND v.fecha >= :fechaDesde " +
+            "GROUP BY p.marca, p.descripcion " +
+            "ORDER BY total DESC")
+    List<Object[]> obtenerTopProductos(@Param("negocioId") Long negocioId, @Param("fechaDesde") LocalDate fechaDesde, Pageable pageable);
 }

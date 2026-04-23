@@ -1,5 +1,5 @@
-const API_BASE = "/api";
-
+//const API_BASE = "/api";
+const API_BASE = "http://192.168.0.14:8080/api";
 
 // HELPERS
 const handleResponse = async (res) => {
@@ -101,6 +101,11 @@ export const deleteData = async (endpoint) => {
 
 // NEGOCIO (ADMIN) ✅ FIX
 export const getNegocio = () => fetchData("negocio");
+
+
+// ---  FUNCIÓN OPTIMIZADA PARA EL DASHBOARD ---
+export const getDashboardResumen = () => fetchData("dashboard/resumen");
+
 
 export const updateNegocio = (datos) =>
   putData(`negocio`, datos);

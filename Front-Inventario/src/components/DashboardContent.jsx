@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { fetchData } from "../components/utils/api.js";
-import { getAuditoria } from "../components/utils/api.js"; 
 import DashboardView from "./DashboardView";
 import InventarioView from "./InventarioView";
 import ClientesView from "./ClientesView";
@@ -24,7 +23,6 @@ const DashboardContent = ({ selected, user, onLogout }) => {
     clientes: [],
     empleados: [],
     ventas: [],
-    auditoria: [], // 🔥 Agregamos auditoría al estado
   });
 
   const [loading, setLoading] = useState(true);
@@ -32,7 +30,6 @@ const DashboardContent = ({ selected, user, onLogout }) => {
   useEffect(() => {
     const fetchSafe = async (endpoint) => {
       try {
-        if (endpoint === "auditoria") return await getAuditoria(); 
         return await fetchData(endpoint);
       } catch (err) {
         console.error(`Error cargando ${endpoint}:`, err.message);
@@ -46,22 +43,11 @@ const DashboardContent = ({ selected, user, onLogout }) => {
       try {
         switch (selected) {
           case "dashboard": {
-            const productosRes = await fetchSafe("productos");
-            const ventas = await fetchSafe("ventas");
-            const clientes = await fetchSafe("clientes");
-            const empleados = await fetchSafe("empleados");
-            const auditoriaRes = await fetchSafe("auditoria"); 
-
-            setData({
-              productos: normalizePage(productosRes),
-              ventas: normalizePage(ventas),
-              clientes: normalizePage(clientes),
-              empleados: normalizePage(empleados),
-              auditoria: normalizePage(auditoriaRes), 
-            });
+            // ¡MAGIA! Acá ya no descargamos nada pesado.
+            // DashboardView se encarga él solito de pedir el resumen ultra rápido.
+            setData({}); 
             break;
           }
-
           case "inventario": {
             const productosRes = await fetchSafe("productos");
             setData({ productos: normalizePage(productosRes) });
@@ -121,7 +107,8 @@ const DashboardContent = ({ selected, user, onLogout }) => {
 
   switch (selected) {
     case "dashboard":
-      return <DashboardView {...data} />; 
+      // Ya no le pasamos las listas pesadas. DashboardView es independiente.
+      return <DashboardView />; 
     case "inventario":
       return <InventarioView productos={data.productos} />;
     case "clientes":
