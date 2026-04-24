@@ -4,12 +4,15 @@ import {
   toggleNegocio,
   deleteNegocioSuperAdmin,
 } from "../../../components/utils/api";
-import "../../../styles/modules/DashboardSuperAdmin.css";
 
 export default function ListNegocio() {
   const [negocios, setNegocios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, negocio: null });
+  const [confirmText, setConfirmText] = useState("");
+  const [successMsg, setSuccessMsg] = useState(""); // 🔥 NUEVO: Estado para el mensaje
 
   const loadNegocios = async () => {
     try {
@@ -17,15 +20,13 @@ export default function ListNegocio() {
       const data = await getNegociosSuperAdmin();
       setNegocios(data);
     } catch (err) {
-      setError(err.message || "Error al cargar negocios");
+      setError(err.message || "Error al cargar");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadNegocios();
-  }, []);
+  useEffect(() => { loadNegocios(); }, []);
 
   const handleToggle = async (id) => {
     try {
@@ -36,116 +37,100 @@ export default function ListNegocio() {
     }
   };
 
-  const handleDelete = async (id) => {
-    const ok = confirm("¿Eliminar negocio definitivamente?");
-    if (!ok) return;
-
+  const handleConfirmDelete = async () => {
     try {
-      await deleteNegocioSuperAdmin(id);
+      await deleteNegocioSuperAdmin(deleteModal.negocio.id);
+      setDeleteModal({ isOpen: false, negocio: null });
+      
+      // 🔥 NUEVO: Mostramos el cartel y lo borramos a los 3 segundos
+      setSuccessMsg(`¡El negocio ${deleteModal.negocio.nombre} fue eliminado por completo!`);
+      setTimeout(() => setSuccessMsg(""), 3000);
+      
       loadNegocios();
-    } catch (err) {
-      alert(err.message);
-    }
+    } catch (err) { alert(err.message); }
   };
 
-  if (loading) return <p style={{ padding: 16 }}>Cargando...</p>;
-  if (error) return <p style={{ padding: 16 }}>{error}</p>;
+  if (loading) return <div className="sa-view"><p>Cargando negocios...</p></div>;
 
   return (
     <div className="sa-view">
-      <div className="sa-list">
-        <h1>Negocios</h1>
+      <h1>Negocios</h1>
+      <p>Administración central de clientes de MyLogist</p>
 
-        {/* ================= DESKTOP ================= */}
-        <div className="sa-table-wrapper">
-          <table className="sa-table">
-            <thead>
-              <tr>
-                <th>Negocio</th>
-                <th>Email</th>
-                <th>Teléfono</th>
-                <th>Admin</th>
-                <th>Estado</th>
-                <th>Acciones</th>
+      {/* 🔥 NUEVO: Cartel de éxito */}
+      {successMsg && (
+        <div style={{ background: '#dcfce7', color: '#166534', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontWeight: '500', border: '1px solid #bbf7d0' }}>
+          ✅ {successMsg}
+        </div>
+      )}
+
+      <div className="sa-table-container">
+        <table className="sa-table">
+          <thead>
+            <tr>
+              <th>Negocio</th>
+              <th>Contacto</th>
+              <th>Admin</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {negocios.map((n) => (
+              <tr key={n.id}>
+                <td data-label="Negocio"><strong>{n.nombre}</strong></td>
+                <td data-label="Contacto">{n.contactoEmail}<br/><small>{n.telefono}</small></td>
+                <td data-label="Admin">{n.adminUsername}</td>
+                <td data-label="Estado">
+                  <span className={`sa-badge ${n.activo ? "activo" : "suspendido"}`}>
+                    {n.activo ? "Activo" : "Suspendido"}
+                  </span>
+                </td>
+                <td data-label="Acciones">
+                  <button className="btn-sa btn-ghost-danger" onClick={() => {
+                    setDeleteModal({ isOpen: true, negocio: n });
+                    setConfirmText("");
+                  }}>
+                    Eliminar
+                  </button>
+                  <button className="btn-sa btn-primary" onClick={() => handleToggle(n.id)}>
+                    {n.activo ? "Suspender" : "Activar"}
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {negocios.map((n) => (
-                <tr key={n.id}>
-                  <td>{n.nombre}</td>
-                  <td>{n.contactoEmail || "-"}</td>
-                  <td>{n.telefono || "-"}</td>
-                  <td>{n.adminUsername || "-"}</td>
-                  <td>
-                    <span
-                      className={`sa-badge ${
-                        n.activo ? "activo" : "suspendido"
-                      }`}
-                    >
-                      {n.activo ? "activo" : "suspendido"}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="sa-link warning"
-                      onClick={() => handleToggle(n.id)}
-                    >
-                      {n.activo ? "Suspender" : "Activar"}
-                    </button>
-
-                    <button
-                      className="sa-link"
-                      style={{ color: "#dc2626" }}
-                      onClick={() => handleDelete(n.id)}
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* ================= MOBILE ================= */}
-        <div className="sa-cards-mobile">
-          {negocios.map((n) => (
-            <div className="sa-card-mobile" key={n.id}>
-              <strong>{n.nombre}</strong>
-              <span>Email: {n.contactoEmail || "-"}</span>
-              <span>Tel: {n.telefono || "-"}</span>
-              <span>Admin: {n.adminUsername || "-"}</span>
-
-              <span
-                className={`sa-badge ${
-                  n.activo ? "activo" : "suspendido"
-                }`}
-              >
-                {n.activo ? "activo" : "suspendido"}
-              </span>
-
-              <div className="sa-card-actions">
-                <button
-                  className="warning"
-                  onClick={() => handleToggle(n.id)}
-                >
-                  {n.activo ? "Suspender" : "Activar"}
-                </button>
-
-                <button
-                  onClick={() => handleDelete(n.id)}
-                  style={{
-                    background: "#fee2e2",
-                    color: "#991b1b",
-                  }}
-                >
-                  Eliminar
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
+
+      {deleteModal.isOpen && (
+        <div className="sa-modal-overlay">
+          <div className="sa-modal">
+            <h2 style={{ color: '#dc2626', marginBottom: '1rem' }}>⚠️ ¿Eliminar Negocio?</h2>
+            <p style={{ background: '#fee2e2', padding: '1rem', borderRadius: '8px', fontSize: '0.9rem', marginBottom: '1rem', color: '#991b1b' }}>
+              Esta acción borrará definitivamente el negocio <strong>{deleteModal.negocio.nombre}</strong>, sus ventas, productos y usuarios.
+            </p>
+            <p>Escribe el nombre del negocio para confirmar:</p>
+            <input 
+              className="sa-input" 
+              style={{ marginTop: '0.5rem' }}
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder={deleteModal.negocio.nombre}
+            />
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
+              <button className="btn-sa" style={{ background: '#f1f5f9', color: '#475569' }} onClick={() => setDeleteModal({ isOpen: false, negocio: null })}>Cancelar</button>
+              <button 
+                className="btn-sa btn-danger" 
+                disabled={confirmText.toLowerCase() !== deleteModal.negocio.nombre.toLowerCase()}
+                onClick={handleConfirmDelete}
+              >
+                Confirmar Borrado
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

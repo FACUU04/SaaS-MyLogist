@@ -13,5 +13,6 @@ public interface CategoriaRepository extends JpaRepository<Categoria, Integer> {
 
     Optional<Categoria> findByIdAndNegocio(Long id, Negocio negocio);
 
+    // --- MÉTODO PARA BORRADO EN CASCADA ---
+    void deleteByNegocioId(Long negocioId);
 }
-

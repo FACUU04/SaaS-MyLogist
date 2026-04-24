@@ -5,6 +5,7 @@ import com.Control.Inventario.dto.NegocioResponseDTO;
 import com.Control.Inventario.entity.Negocio;
 import com.Control.Inventario.entity.User;
 import com.Control.Inventario.repository.NegocioRepository;
+import com.Control.Inventario.service.SuperAdminService; // 🔥 IMPORTAMOS NUESTRO NUEVO SERVICIO
 import com.Control.Inventario.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ public class SuperAdminNegocioController {
 
     private final NegocioRepository negocioRepository;
     private final UserService userService;
+    private final SuperAdminService superAdminService; // 🔥 INYECTAMOS EL SERVICIO
 
     // LISTAR NEGOCIOS
     @GetMapping
@@ -35,7 +37,7 @@ public class SuperAdminNegocioController {
                             .stream()
                             .findFirst(); // asumimos 1 admin por negocio
 
-                    // 🔥 CORREGIDO: Ahora pasamos los 8 parámetros del DTO
+                    // Ahora pasamos los 8 parámetros del DTO
                     return new NegocioResponseDTO(
                             n.getId(),
                             n.getNombre(),
@@ -63,7 +65,6 @@ public class SuperAdminNegocioController {
                 .contactoEmail(request.getContactoEmail())
                 .telefono(request.getTelefono())
                 .umbralStock(request.getUmbralStock())
-                // 🔥 AGREGADOS: Campos del ticket para cuando se crea el negocio
                 .ticketCabecera(request.getTicketCabecera() != null ? request.getTicketCabecera() : "¡Gracias por su compra!")
                 .ticketPie(request.getTicketPie() != null ? request.getTicketPie() : "Vuelva pronto")
                 .activo(true)
@@ -103,7 +104,6 @@ public class SuperAdminNegocioController {
         negocio.setUbicacionLocal(request.getUbicacionLocal());
         negocio.setUmbralStock(request.getUmbralStock());
 
-        // 🔥 AGREGADOS: Para que el SuperAdmin también pueda editarlos
         if (request.getTicketCabecera() != null) negocio.setTicketCabecera(request.getTicketCabecera());
         if (request.getTicketPie() != null) negocio.setTicketPie(request.getTicketPie());
 
@@ -138,7 +138,8 @@ public class SuperAdminNegocioController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminarNegocio(@PathVariable Long id) {
 
-        negocioRepository.deleteById(id);
+        // Usamos el borrado en cascada en vez del deleteById
+        superAdminService.eliminarNegocioDefinitivamente(id);
 
         return ResponseEntity.ok(
                 Map.of("message", "Negocio eliminado correctamente")

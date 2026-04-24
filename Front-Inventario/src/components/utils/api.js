@@ -1,5 +1,5 @@
-const API_BASE = "/api";
-//const API_BASE = "http://192.168.0.14:8080/api";
+//const API_BASE = "/api";
+const API_BASE = "http://192.168.0.14:8080/api";
 
 // HELPERS
 const handleResponse = async (res) => {

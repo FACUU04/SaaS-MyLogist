@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
-import java.time.LocalDate; // FIX: Cambiado a LocalDate
+import java.time.LocalDate;
 import java.util.List;
 
 public interface VentaRepository extends JpaRepository<Venta, Long> {
@@ -51,11 +51,9 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
 
     long countByNegocioId(Long negocioId);
 
-    // FIX: El parámetro ahora es LocalDate
     @Query("SELECT COUNT(v) FROM Venta v WHERE v.negocioId = :negocioId AND v.fecha >= :fechaDesde")
     long countVentasRecientes(@Param("negocioId") Long negocioId, @Param("fechaDesde") LocalDate fechaDesde);
 
-    // FIX: El parámetro ahora es LocalDate
     @Query("SELECT p.marca, p.descripcion, SUM(d.cantidad) AS total " +
             "FROM DetalleVenta d " +
             "JOIN d.venta v " +
@@ -64,4 +62,7 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
             "GROUP BY p.marca, p.descripcion " +
             "ORDER BY total DESC")
     List<Object[]> obtenerTopProductos(@Param("negocioId") Long negocioId, @Param("fechaDesde") LocalDate fechaDesde, Pageable pageable);
+
+    // --- MÉTODO PARA BORRADO EN CASCADA ---
+    void deleteByNegocioId(Long negocioId);
 }

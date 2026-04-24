@@ -11,6 +11,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
 
     List<User> findByNegocioId(Long negocioId);
-    
+
     Optional<User> findByEmpleadoId(Long empleadoId);
+
+    // --- MÉTODO PARA BORRADO EN CASCADA ---
+    void deleteByNegocioId(Long negocioId);
 }

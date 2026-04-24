@@ -13,5 +13,6 @@ public interface EmpleadoRepository extends JpaRepository<Empleado, Long> {
 
     long countByNegocioId(Long negocioId);
 
-
+    // --- MÉTODO PARA BORRADO EN CASCADA ---
+    void deleteByNegocioId(Long negocioId);
 }

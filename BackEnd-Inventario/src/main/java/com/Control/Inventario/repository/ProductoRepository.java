@@ -30,4 +30,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     @Query("SELECT p FROM Producto p WHERE p.negocio = :negocio AND p.activo = true AND p.cantidadStock < :umbral")
     List<Producto> findBajoStockList(@Param("negocio") Negocio negocio, @Param("umbral") Double umbral);
+
+    // --- MÉTODO PARA BORRADO EN CASCADA ---
+    void deleteByNegocioId(Long negocioId);
 }

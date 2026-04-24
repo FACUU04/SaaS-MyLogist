@@ -18,4 +18,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
     // --- NUEVOS MÉTODOS PARA EL DASHBOARD ---
     long countByNegocioAndActivoTrue(Negocio negocio);
+
+    // --- MÉTODO PARA BORRADO EN CASCADA ---
+    void deleteByNegocioId(Long negocioId);
 }

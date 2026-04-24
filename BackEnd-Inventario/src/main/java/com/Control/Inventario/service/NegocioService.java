@@ -15,7 +15,7 @@ public class NegocioService {
 
     private final UserRepository userRepository;
     private final NegocioRepository negocioRepository;
-    private final AuditoriaService auditoriaService; // 🔥 AGREGADO PARA AUDITAR
+    private final AuditoriaService auditoriaService;
 
     public NegocioAdminDTO obtenerNegocioDelAdmin() {
         Negocio n = obtenerNegocioActual();
