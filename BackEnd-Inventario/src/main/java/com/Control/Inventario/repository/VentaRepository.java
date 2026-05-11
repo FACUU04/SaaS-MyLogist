@@ -63,6 +63,13 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
             "ORDER BY total DESC")
     List<Object[]> obtenerTopProductos(@Param("negocioId") Long negocioId, @Param("fechaDesde") LocalDate fechaDesde, Pageable pageable);
 
+    // NUEVO: Suma de ventas por mes para el gráfico de balance
+    @Query("SELECT MONTH(v.fecha), SUM(v.importe) " +
+            "FROM Venta v " +
+            "WHERE v.negocioId = :negocioId AND YEAR(v.fecha) = :anio " +
+            "GROUP BY MONTH(v.fecha)")
+    List<Object[]> sumVentasPorMes(@Param("negocioId") Long negocioId, @Param("anio") int anio);
+
     // --- MÉTODO PARA BORRADO EN CASCADA ---
     void deleteByNegocioId(Long negocioId);
 }

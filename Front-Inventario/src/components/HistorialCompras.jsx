@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { getComprasPorProveedor, getDetallesCompra, fetchData } from "../components/utils/api";
+import { getOrdenesPorProveedor, recibirOrdenCompra, fetchData } from "../components/utils/api";
+import { toast } from "react-toastify";
 import "../styles/modules/HistorialCompras.css";
 
 const HistorialCompras = ({ proveedorId }) => {
@@ -8,57 +9,74 @@ const HistorialCompras = ({ proveedorId }) => {
   const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
-    // FIX: Aseguramos que si la API devuelve paginación, extraemos el array correcto
     fetchData("productos")
       .then((res) => setProductos(Array.isArray(res) ? res : res?.content ?? []))
       .catch((err) => console.error("Error cargando productos:", err));
   }, []);
 
-  useEffect(() => {
+  const cargarHistorial = async () => {
     if (!proveedorId) return;
+    setCargando(true);
 
-    const cargarHistorial = async () => {
-      setCargando(true);
-      try {
-        const compras = await getComprasPorProveedor(proveedorId);
+    try {
+      const response = await getOrdenesPorProveedor(proveedorId);
+      
+      const listaLimpia = Array.isArray(response) ? response : (response?.content || []);
 
-        const comprasOrdenadas = compras.sort(
-          (a, b) => new Date(b.fecha) - new Date(a.fecha)
-        );
+      const ordenesOrdenadas = [...listaLimpia].sort(
+        (a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion)
+      );
 
-        const filasExpandidas = [];
+      const filasExpandidas = [];
 
-        for (const compra of comprasOrdenadas) {
-          const detalles = await getDetallesCompra(compra.id);
+      ordenesOrdenadas.forEach((orden) => {
+        if (!orden.detalles || orden.detalles.length === 0) return;
 
-          detalles.forEach((det) => {
-            filasExpandidas.push({
-              id: det.id,
-              fecha: compra.fecha,
-              metodoPago: compra.metodoPago,
-              observaciones: compra.observaciones,
-              idProducto: det.idProducto,
-              cantidad: det.cantidad,
-              importe: det.importe,
-            });
+        orden.detalles.forEach((det, index) => {
+          filasExpandidas.push({
+            idOrden: orden.id,
+            idDetalle: det.id,
+            fecha: orden.fechaCreacion ? orden.fechaCreacion.split("T")[0] : "",
+            estado: orden.estado, 
+            metodoPago: orden.metodoPago,
+            obsGeneral: orden.observaciones, // Capturamos la nota general de la compra
+            obsProducto: det.observaciones,  // Capturamos la nota específica del producto
+            idProducto: det.producto?.id,
+            cantidad: det.cantidad,
+            importe: det.precioUnitario,
+            subtotal: det.cantidad * det.precioUnitario,
+            esPrimeraFila: index === 0 
           });
-        }
+        });
+      });
 
-        setFilas(filasExpandidas);
-      } catch (error) {
-        console.error("Error cargando historial de compras:", error);
-      } finally {
-        setCargando(false);
-      }
-    };
+      setFilas(filasExpandidas);
+    } catch (error) {
+      console.error("Error cargando historial de compras:", error);
+      toast.error("No se pudo cargar el historial de órdenes");
+    } finally {
+      setCargando(false);
+    }
+  };
 
+  useEffect(() => {
     cargarHistorial();
   }, [proveedorId]);
 
   const obtenerDescripcion = (idProducto) => {
-    // Verificamos tanto por id como por id_producto según cómo venga de tu base de datos
     const prod = productos.find((p) => p.id === idProducto || p.id_producto === idProducto);
     return prod ? prod.descripcion : `Prod ID #${idProducto}`;
+  };
+
+  const handleMarcarRecibida = async (idOrden) => {
+    try {
+      await recibirOrdenCompra(idOrden);
+      toast.success("¡Orden recibida! El stock ha sido actualizado correctamente.");
+      cargarHistorial(); 
+    } catch (error) {
+      console.error(error);
+      toast.error("Error al confirmar la recepción de la orden");
+    }
   };
 
   if (!proveedorId) return null;
@@ -66,41 +84,78 @@ const HistorialCompras = ({ proveedorId }) => {
   return (
     <div className="historial-compras-container">
       <div className="historial-header">
-        <h4>Historial de Compras del Proveedor</h4>
+        <h4>Historial de Órdenes del Proveedor</h4>
       </div>
 
       {cargando ? (
         <p className="texto-estado">Cargando historial de compras...</p>
       ) : filas.length === 0 ? (
-        <p className="texto-estado">No hay compras registradas para este proveedor.</p>
+        <p className="texto-estado">No hay órdenes registradas para este proveedor.</p>
       ) : (
         <div className="table-responsive-wrapper">
           <table className="compras-table">
             <thead>
               <tr>
                 <th>Fecha</th>
+                <th>Estado</th>
                 <th>Producto</th>
                 <th className="text-center">Cantidad</th>
-                <th>Importe</th>
+                <th>Costo Unit.</th>
+                <th>Subtotal</th>
                 <th>Método</th>
                 <th>Observaciones</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {filas.map((f) => (
-                <tr key={f.id}>
-                  <td>{f.fecha}</td>
-                  <td>{obtenerDescripcion(f.idProducto)}</td>
-                  <td className="text-center"><strong>{f.cantidad}</strong></td>
-                  <td className="importe-celda">
-                    ${parseFloat(f.importe).toLocaleString("es-AR")}
-                  </td>
-                  <td>
-                    <span className="badge-metodo">{f.metodoPago || "N/D"}</span>
-                  </td>
-                  <td className="obs-celda">{f.observaciones || "-"}</td>
-                </tr>
-              ))}
+              {filas.map((f) => {
+                // Lógica para mostrar la observación más relevante y armar el tooltip (title)
+                const textoMostrar = f.obsProducto ? f.obsProducto : (f.esPrimeraFila ? f.obsGeneral : "-");
+                const tooltipCompleto = `General: ${f.obsGeneral || 'Ninguna'}\nProducto: ${f.obsProducto || 'Ninguna'}`;
+
+                return (
+                  <tr 
+                    key={f.idDetalle} 
+                    className={f.estado === 'RECIBIDA' ? 'fila-recibida' : ''}
+                  >
+                    <td>{f.fecha}</td>
+                    <td>
+                      <span 
+                        className={`badge-estado ${f.estado === 'PENDIENTE' ? 'badge-pendiente' : 'badge-recibida'}`}
+                      >
+                        {f.estado}
+                      </span>
+                    </td>
+                    <td>{obtenerDescripcion(f.idProducto)}</td>
+                    <td className="text-center"><strong>{f.cantidad}</strong></td>
+                    <td className="importe-celda">
+                      ${parseFloat(f.importe).toLocaleString("es-AR")}
+                    </td>
+                    <td className="importe-celda" style={{ fontWeight: '600' }}>
+                      ${parseFloat(f.subtotal).toLocaleString("es-AR")}
+                    </td>
+                    <td>
+                      <span className="badge-metodo">{f.metodoPago || "N/D"}</span>
+                    </td>
+                    
+                    {/* NUEVA COLUMNA OBSERVACIONES CON TU CLASE .obs-celda */}
+                    <td className="obs-celda" title={tooltipCompleto} style={{ cursor: 'help' }}>
+                      {textoMostrar || "-"}
+                    </td>
+
+                    <td>
+                      {f.esPrimeraFila && f.estado === 'PENDIENTE' && (
+                        <button 
+                          className="btn-primario btn-recibir" 
+                          onClick={() => handleMarcarRecibida(f.idOrden)}
+                        >
+                          Recibir
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

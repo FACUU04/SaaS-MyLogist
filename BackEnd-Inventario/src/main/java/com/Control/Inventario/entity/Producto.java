@@ -1,5 +1,6 @@
 package com.Control.Inventario.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -28,16 +29,20 @@ public class Producto {
 
     @Column(name = "unidad_medida")
     private String unidad;
-    
+
     @Column(name = "activo", columnDefinition = "boolean default true")
     private Boolean activo = true;
 
+    // CORTAMOS EL BUCLE ACÁ
     @ManyToOne
     @JoinColumn(name = "categoria_id")
+    @JsonIgnore
     private Categoria categoria;
 
+    // CORTAMOS EL BUCLE ACÁ
     @ManyToOne
     @JoinColumn(name = "negocio_id", nullable = false)
+    @JsonIgnore
     private Negocio negocio;
 
     public Producto() {}
@@ -65,7 +70,7 @@ public class Producto {
     public Double getPrecio() { return precio; }
     public Double getCantidadStock() { return cantidadStock; }
     public String getUnidad() { return unidad; }
-    public Boolean getActivo() { return activo; } // Getter
+    public Boolean getActivo() { return activo; }
     public Categoria getCategoria() { return categoria; }
     public Negocio getNegocio() { return negocio; }
 
@@ -76,7 +81,7 @@ public class Producto {
     public void setPrecio(Double precio) { this.precio = precio; }
     public void setCantidadStock(Double cantidadStock) { this.cantidadStock = cantidadStock; }
     public void setUnidad(String unidad) { this.unidad = unidad; }
-    public void setActivo(Boolean activo) { this.activo = activo; } // Setter
+    public void setActivo(Boolean activo) { this.activo = activo; }
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }
     public void setNegocio(Negocio negocio) { this.negocio = negocio; }
 }

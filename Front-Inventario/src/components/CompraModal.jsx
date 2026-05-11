@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { createCompraMultiple } from "../components/utils/api";
+import { createOrdenCompra } from "../components/utils/api";
 import { toast } from "react-toastify";
 import "../styles/modules/ComprasModule.css";
 
@@ -8,16 +8,16 @@ const CompraModal = ({ proveedor, productos, onClose, onCompraRegistrada }) => {
     idProducto: "",
     cantidad: "",
     importe: "",
-    observaciones: "",
+    observaciones: "", // Restaurado
   });
 
   const [items, setItems] = useState([]);
 
   const [compraInfo, setCompraInfo] = useState({
     idProveedor: proveedor.id,
-    metodoPago: "",
-    fecha: new Date().toISOString().slice(0, 10),
-    observaciones: "",
+    metodoPago: "", // Restaurado
+    fecha: new Date().toISOString().slice(0, 10), // Restaurado
+    observaciones: "", // Restaurado
   });
 
   const handleItemChange = (campo, valor) => {
@@ -54,19 +54,28 @@ const CompraModal = ({ proveedor, productos, onClose, onCompraRegistrada }) => {
     }
 
     try {
+      // Armamos el payload mezclando tu info con la estructura que necesita el DTO
       const payload = {
-        ...compraInfo,
-        detalles: items,
+        proveedorId: proveedor.id,
+        fechaRecepcionEsperada: compraInfo.fecha || null, 
+        metodoPago: compraInfo.metodoPago, // Queda listo para cuando lo agreguemos al back
+        observaciones: compraInfo.observaciones, // Queda listo para el back
+        detalles: items.map(it => ({
+          productoId: parseInt(it.idProducto),
+          cantidad: parseFloat(it.cantidad),
+          precioUnitario: parseFloat(it.importe), // El backend lo espera como precioUnitario
+          observaciones: it.observaciones // Queda listo para el back
+        }))
       };
 
-      await createCompraMultiple(payload);
+      await createOrdenCompra(payload);
 
-      toast.success("Compra registrada correctamente");
+      toast.success("Orden registrada correctamente");
       onCompraRegistrada();
       onClose();
     } catch (err) {
       console.error(err);
-      toast.error("Error al registrar la compra");
+      toast.error("Error al registrar la orden");
     }
   };
 
@@ -74,7 +83,7 @@ const CompraModal = ({ proveedor, productos, onClose, onCompraRegistrada }) => {
     <div className="modal-overlay">
       <div className="modal-content modal-compra">
         <div className="modal-header">
-          <h3>Registrar compra para {proveedor.nombre}</h3>
+          <h3>Registrar orden para {proveedor.nombre}</h3>
         </div>
 
         <div className="modal-body">
@@ -168,7 +177,7 @@ const CompraModal = ({ proveedor, productos, onClose, onCompraRegistrada }) => {
                 />
               </div>
               <div className="input-group">
-                <label>Fecha de Compra</label>
+                <label>Fecha de Recepción Esperada</label>
                 <input
                   type="date"
                   value={compraInfo.fecha}
@@ -193,7 +202,7 @@ const CompraModal = ({ proveedor, productos, onClose, onCompraRegistrada }) => {
             Cancelar
           </button>
           <button className="btn-primario" onClick={guardarCompra}>
-            Confirmar Compra
+            Generar Orden
           </button>
         </div>
       </div>

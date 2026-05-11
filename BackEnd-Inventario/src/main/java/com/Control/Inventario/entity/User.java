@@ -1,5 +1,6 @@
 package com.Control.Inventario.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -40,8 +41,10 @@ public class User {
     @Builder.Default
     private boolean locked = false;
 
+    // CORTAMOS EL BUCLE ACÁ
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "negocio_id", nullable = false)
+    @JsonIgnore
     private Negocio negocio;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -51,15 +54,15 @@ public class User {
     // --- PERMISOS GRANULARES ---
     @Column(name = "permiso_ventas")
     @Builder.Default
-    private boolean permisoVentas = true; // Por defecto un empleado puede vender
+    private boolean permisoVentas = true;
 
     @Column(name = "permiso_inventario")
     @Builder.Default
-    private boolean permisoInventario = false; // Por defecto NO puede tocar el stock
+    private boolean permisoInventario = false;
 
     @Column(name = "permiso_proveedores")
     @Builder.Default
-    private boolean permisoProveedores = false; // Por defecto NO ve proveedores
+    private boolean permisoProveedores = false;
 
     public void addRole(Role role) {
         this.roles.add(role);

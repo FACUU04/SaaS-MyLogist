@@ -1,0 +1,193 @@
+/* ImportarExcelModule.css */
+
+/* 
+  Al unir .modal-content y .excel-modal aumentamos la especificidad.
+  Esto fuerza a que se ignore el max-width: 500px del MODAL.CSS global 
+*/
+.modal-content.excel-modal {
+  max-width: 850px !important; 
+  width: 95%;
+}
+
+/* Header fix para el botón de la X */
+.header-con-cierre {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  font-size: 1.75rem;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.btn-close:hover {
+  color: #ef4444; 
+}
+
+/* Cuerpo del modal unificando el scroll con el global */
+.excel-modal-body {
+  padding: 1.5rem;
+  flex: 1 1 auto; 
+  overflow-y: auto !important; 
+  min-height: 0; /* FIX crítico para que Flexbox permita el overflow vertical */
+}
+
+.excel-instrucciones {
+  margin: 0 0 1.5rem 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* Caja de guía de columnas */
+.excel-guia {
+  background-color: #f1f5f9;
+  padding: 1.25rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  border: 1px solid #e2e8f0;
+}
+
+.excel-guia h5 {
+  margin: 0 0 1rem 0;
+  color: #1e293b;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* FIX: Contenedor que permite deslizar la tabla sin romper el modal */
+.table-responsive-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+}
+
+.excel-tabla-guia {
+  width: 100%;
+  font-size: 0.85rem !important;
+  margin-bottom: 0 !important;
+  border-collapse: collapse;
+}
+
+.excel-tabla-guia th {
+  background-color: #e2e8f0;
+  text-align: left;
+}
+
+.excel-tabla-guia th, 
+.excel-tabla-guia td {
+  padding: 8px 12px !important;
+  white-space: nowrap; 
+  border-bottom: 1px solid #cbd5e1;
+}
+
+/* Zona de carga de archivo */
+.excel-dropzone {
+  border: 2px dashed #cbd5e1;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  border-radius: 10px;
+  background-color: #f8fafc;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.excel-dropzone:hover {
+  border-color: #f97316;
+  background-color: #fff7ed;
+}
+
+.file-selected {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* SECCIÓN DE ERRORES (Mejorada y sin doble scroll) */
+.excel-errores-container {
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  background-color: #fef2f2;
+  overflow: hidden;
+  margin-top: 2rem;
+}
+
+.excel-errores-header {
+  background-color: #fee2e2;
+  padding: 0.75rem 1rem;
+  color: #991b1b;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-bottom: 1px solid #fecaca;
+}
+
+.excel-errores-list {
+  padding: 1rem;
+  margin: 0;
+  list-style: none;
+  height: auto; /* Dejamos que el scroll lo maneje el modal body */
+}
+
+.excel-errores-list li {
+  color: #b91c1c;
+  font-size: 0.88rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #fee2e2;
+  display: flex;
+  gap: 0.5rem;
+  word-break: break-word; /* FIX: Evita que textos larguísimos rompan la caja */
+}
+
+.excel-errores-list li:last-child {
+  border-bottom: none;
+}
+
+/* RESPONSIVE: Ajustes para Celulares */
+@media (max-width: 640px) {
+  .modal-content.excel-modal {
+    border-radius: 0;
+    height: 100vh; /* Que ocupe toda la pantalla en celular */
+    max-height: 100vh;
+  }
+
+  .excel-modal-body {
+    padding: 1rem;
+  }
+
+  .excel-guia {
+    padding: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .excel-tabla-guia {
+    font-size: 0.75rem !important;
+  }
+
+  .excel-dropzone {
+    padding: 1.5rem 1rem;
+  }
+  
+  .excel-errores-container {
+    margin-top: 1.5rem;
+  }
+}
+
+/* Estilo para el error general dentro del modal */
+.excel-error-general {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+}

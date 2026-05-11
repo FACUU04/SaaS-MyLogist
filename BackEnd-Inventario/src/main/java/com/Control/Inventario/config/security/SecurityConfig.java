@@ -62,6 +62,8 @@ public class SecurityConfig {
                 "http://35.175.207.14",
                 "http://localhost:5173",
                 "http://192.168.0.14:5173",
+                "http://192.168.0.8:5173",
+                "http://192.168.0.19:5173",
                 "http://localhost"
         ));
 

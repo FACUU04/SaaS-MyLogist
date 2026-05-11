@@ -1,5 +1,5 @@
 //const API_BASE = "/api";
-const API_BASE = "http://192.168.0.14:8080/api";
+const API_BASE = "http://192.168.0.19:8080/api";
 
 // HELPERS
 const handleResponse = async (res) => {
@@ -13,7 +13,12 @@ const handleResponse = async (res) => {
   }
 
   if (!res.ok) {
-    throw new Error(data?.message || data || res.statusText);
+  
+    const errorMsg = (typeof data === 'object' && data !== null) 
+      ? JSON.stringify(data) 
+      : (data?.message || data);
+      
+    throw new Error(errorMsg || res.statusText);
   }
 
   return data;
@@ -127,6 +132,19 @@ export const removeProveedor = (id) =>
 // PRODUCTOS
 export const getProductos = () => fetchData("productos");
 
+export const importarExcelProductos = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`${API_BASE}/productos/importar`, {
+    method: "POST",
+    headers: getHeaders(false), // Le pasamos false para que NO ponga application/json
+    body: formData,
+  });
+
+  return handleResponse(res);
+};
+
 
 // COMPRAS
 export const getComprasPorProveedor = (idProveedor) =>
@@ -203,3 +221,14 @@ export const getAuditoria = () => fetchData("auditoria");
 export const getNotas = () => fetchData("notas");
 export const createNota = (contenido) => postData("notas", { contenido });
 export const deleteNota = (id) => deleteData(`notas/${id}`);
+
+// --- NUEVO FLUJO DE ÓRDENES DE COMPRA (STOCK DIFERIDO) ---
+
+export const createOrdenCompra = (orden) =>
+  postData("ordenes-compra", orden);
+
+export const recibirOrdenCompra = (idOrden) =>
+  putData(`ordenes-compra/${idOrden}/recibir`, {});
+
+export const getOrdenesPorProveedor = (idProveedor) =>
+  fetchData(`ordenes-compra/proveedor/${idProveedor}`);

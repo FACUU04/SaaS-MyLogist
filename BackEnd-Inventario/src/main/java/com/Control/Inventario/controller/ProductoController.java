@@ -3,13 +3,16 @@ package com.Control.Inventario.controller;
 import com.Control.Inventario.dto.PageResponse;
 import com.Control.Inventario.dto.ProductoRequest;
 import com.Control.Inventario.dto.ProductoResponseDTO;
+import com.Control.Inventario.dto.ImportacionExcelResponseDTO; 
 import com.Control.Inventario.service.ProductoService;
+import com.Control.Inventario.service.ImportacionExcelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/productos")
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class ProductoController {
 
     private final ProductoService productoService;
+    private final ImportacionExcelService importacionExcelService; // NUEVO: Se inyecta automáticamente gracias a @RequiredArgsConstructor
 
     // LISTAR PRODUCTOS (SOLO ACTIVOS) - Lectura permitida para ventas e inventario
     @GetMapping
@@ -76,5 +80,19 @@ public class ProductoController {
     public ResponseEntity<Void> restaurar(@PathVariable Long id) {
         productoService.restaurarProducto(id);
         return ResponseEntity.ok().build();
+    }
+
+    // IMPORTAR DESDE EXCEL - Escritura solo para inventario
+    @PostMapping("/importar")
+    @PreAuthorize("@permisos.puedeGestionarInventario(authentication.name)")
+    public ResponseEntity<ImportacionExcelResponseDTO> importarExcel(@RequestParam("file") MultipartFile file) {
+        ImportacionExcelResponseDTO resultado = importacionExcelService.procesarExcel(file);
+
+        if (resultado.isExito()) {
+            return ResponseEntity.ok(resultado);
+        } else {
+            // Devolvemos 400 Bad Request con la lista de errores si el Excel viene mal armado
+            return ResponseEntity.badRequest().body(resultado);
+        }
     }
 }

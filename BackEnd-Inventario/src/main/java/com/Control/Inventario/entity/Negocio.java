@@ -1,5 +1,6 @@
 package com.Control.Inventario.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -53,7 +54,9 @@ public class Negocio {
     @Builder.Default
     private boolean activo = true;
 
+    // CORTAMOS EL BUCLE ACÁ
     @OneToMany(mappedBy = "negocio", fetch = FetchType.LAZY)
     @Builder.Default
+    @JsonIgnore
     private Set<User> usuarios = new HashSet<>();
 }

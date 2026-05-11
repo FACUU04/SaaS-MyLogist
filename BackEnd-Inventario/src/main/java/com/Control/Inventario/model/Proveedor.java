@@ -1,5 +1,7 @@
 package com.Control.Inventario.model;
 
+import com.Control.Inventario.entity.Negocio;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -53,5 +55,11 @@ public class Proveedor {
     private LocalDateTime fechaRegistro;
 
     @Column(name = "activo")
-    private Boolean activo = true; // Valor por defecto
+    private Boolean activo = true;
+
+    // EL SELLO DEL NEGOCIO
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "negocio_id", nullable = false)
+    @JsonIgnore
+    private Negocio negocio;
 }

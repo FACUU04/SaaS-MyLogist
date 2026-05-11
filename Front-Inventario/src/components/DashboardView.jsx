@@ -1,23 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { getNegocio, updateNegocio, getNotas, createNota, deleteNota, getDashboardResumen } from "../components/utils/api";
+import { 
+  getNegocio, updateNegocio, getNotas, createNota, deleteNota, getDashboardResumen
+} from "../components/utils/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import HistorialVentas from "../components/UI/HistorialVentas"; 
+import BalanceGrafico from "../components/UI/BalanceGrafico"; 
 import "../styles/Dashboard.css";
 import "../styles/Modal.css";
 
 const DashboardView = () => {
   const [negocio, setNegocio] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
-
-  // NUEVO ESTADO: El resumen optimizado del backend
   const [resumen, setResumen] = useState(null);
-
-  // ESTADOS DE NOTAS EN BASE DE DATOS
   const [nota, setNota] = useState("");
   const [notas, setNotas] = useState([]);
 
-  // --- FIX MULTIPLATAFORMA: BLOQUEAR SCROLL DE FONDO AL ABRIR MODAL ---
   useEffect(() => {
     if (mostrarModal) {
       document.body.style.overflow = "hidden";
@@ -27,7 +25,6 @@ const DashboardView = () => {
     return () => { document.body.style.overflow = "auto"; };
   }, [mostrarModal]);
 
-  // CARGA INICIAL DE DATOS
   useEffect(() => {
     const cargarDatosIniciales = async () => {
       try {
@@ -46,9 +43,8 @@ const DashboardView = () => {
         const dataNotas = await getNotas();
         setNotas(Array.isArray(dataNotas) ? dataNotas : []);
 
-        // 3. CARGAMOS EL RESUMEN OPTIMIZADO Y LO IMPRIMIMOS EN CONSOLA
+        // 3. CARGAMOS EL RESUMEN OPTIMIZADO (Acá ya viene el balanceMensual)
         const dataResumen = await getDashboardResumen();
-        console.log("👉 ESTO MANDA EL BACKEND:", dataResumen);
         setResumen(dataResumen);
 
       } catch (err) {
@@ -59,7 +55,6 @@ const DashboardView = () => {
     cargarDatosIniciales();
   }, []);
 
-  // Función auxiliar de fecha para la auditoría
   const parseFecha = (fecha) => {
     if (!fecha) return new Date(0);
     if (Array.isArray(fecha)) {
@@ -68,7 +63,6 @@ const DashboardView = () => {
     return new Date(fecha);
   };
 
-  // LÓGICA DE NOTAS
   const agregarNota = async () => {
     if (nota.trim()) {
       try {
@@ -149,9 +143,20 @@ const DashboardView = () => {
         <div className="card"><h3>Ventas último mes</h3><p>{resumen.ventasUltimoMes}</p></div>
       </div>
 
-      <div className="historial-seccion" style={{ marginTop: '30px', marginBottom: '30px' }}>
-        <h3>Evolución de Ventas</h3>
-        <HistorialVentas />
+      {/* GRÁFICOS */}
+      <div className="graficos-container" style={{ display: 'flex', flexDirection: 'column', gap: '30px', margin: '30px 0' }}>
+        
+        <div className="historial-seccion">
+          <h3>Evolución de Ventas</h3>
+          <HistorialVentas />
+        </div>
+
+        <div className="balance-seccion">
+          <h3>Balance Mensual (Ingresos vs Egresos)</h3>
+          {/* El gráfico recibe la data procesada directo del backend */}
+          <BalanceGrafico data={resumen.balanceMensual || []} />
+        </div>
+
       </div>
 
       {/* 2. TOP PRODUCTOS */}

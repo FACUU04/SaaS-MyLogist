@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { fetchData, postData, putData, deleteData, getNegocio } from "../components/utils/api";
 import { ToastContainer, toast } from "react-toastify";
+import ImportarExcelModal from "./ImportarExcelModal"; 
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/modules/InventarioModule.css";
 
@@ -30,8 +31,10 @@ const InventarioView = () => {
   const [busqueda, setBusqueda] = useState("");
   const [negocio, setNegocio] = useState(null);
   
-  // NUEVO: Estado para alternar entre productos activos y eliminados
   const [verEliminados, setVerEliminados] = useState(false);
+
+  // NUEVO: Estado para controlar el modal del Excel
+  const [mostrarImportar, setMostrarImportar] = useState(false);
 
   // Estados para modales de confirmación
   const [modalConfirm, setModalConfirm] = useState({ isOpen: false, id: null });
@@ -41,7 +44,6 @@ const InventarioView = () => {
     cargarDatosIniciales(verEliminados);
   }, []);
 
-  // Modificado para aceptar el estado y saber a qué endpoint pegarle
   const cargarDatosIniciales = async (mostrarEliminados = verEliminados) => {
     try {
       const endpoint = mostrarEliminados ? "productos/eliminados" : "productos";
@@ -149,7 +151,6 @@ const InventarioView = () => {
     }
   };
 
-  // NUEVA FUNCIÓN: Ejecutar restauración
   const ejecutarRestauracion = async () => {
     try {
       await putData(`productos/${modalRestaurar.id}/restaurar`, {});
@@ -185,10 +186,22 @@ const InventarioView = () => {
           >
             {verEliminados ? "Ver Inventario Activo" : "Ver Eliminados"}
           </button>
+          
           {!verEliminados && (
-            <button className="btn-primario" onClick={abrirNuevo}>
-              Añadir Producto
-            </button>
+            <>
+              {/* NUEVO: Botón para abrir el modal de importación */}
+              <button 
+                className="btn-secundario" 
+                onClick={() => setMostrarImportar(true)}
+                style={{ marginRight: "10px" }}
+              >
+                Importar Excel
+              </button>
+
+              <button className="btn-primario" onClick={abrirNuevo}>
+                Añadir Producto
+              </button>
+            </>
           )}
         </div>
       </header>
@@ -347,6 +360,14 @@ const InventarioView = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* NUEVO: Modal de Importación de Excel */}
+      {mostrarImportar && (
+        <ImportarExcelModal
+          onClose={() => setMostrarImportar(false)}
+          onImportacionExitosa={() => cargarDatosIniciales(verEliminados)}
+        />
       )}
 
       {/* Modal Oscuro de Confirmación de Eliminación */}

@@ -5,7 +5,7 @@ import com.Control.Inventario.dto.NegocioResponseDTO;
 import com.Control.Inventario.entity.Negocio;
 import com.Control.Inventario.entity.User;
 import com.Control.Inventario.repository.NegocioRepository;
-import com.Control.Inventario.service.SuperAdminService; // 🔥 IMPORTAMOS NUESTRO NUEVO SERVICIO
+import com.Control.Inventario.service.SuperAdminService;
 import com.Control.Inventario.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,7 @@ public class SuperAdminNegocioController {
 
     private final NegocioRepository negocioRepository;
     private final UserService userService;
-    private final SuperAdminService superAdminService; // 🔥 INYECTAMOS EL SERVICIO
+    private final SuperAdminService superAdminService;
 
     // LISTAR NEGOCIOS
     @GetMapping

@@ -6,9 +6,9 @@ const ProveedorList = ({ lista, onEdit, onDelete, onVerCompras, onRegistrarCompr
       <thead>
         <tr>
           <th>Nombre</th>
-          <th>Descripción</th> {/* Reemplazamos Email */}
+          <th>Descripción</th> 
           <th>Contacto</th>
-          <th>Sitio Web</th> {/* Reemplazamos Teléfono */}
+          <th>Sitio Web</th> 
           <th>Estado</th>
           <th>Productos</th>
           <th>Acciones</th>
@@ -25,10 +25,10 @@ const ProveedorList = ({ lista, onEdit, onDelete, onVerCompras, onRegistrarCompr
                   {p.nombre}
                 </strong>
               </td>
-              <td>{p.descripcion || "-"}</td> {/* Nueva columna Descripción */}
+              <td>{p.descripcion || "-"}</td> 
               <td>{p.contacto || "-"}</td>
               <td>
-                {/* Nueva columna Sitio Web con enlace clickeable */}
+                
                 {p.sitioWeb ? (
                   <a 
                     href={p.sitioWeb} 
