@@ -41,7 +41,8 @@ public class AuditoriaService {
     public List<AuditoriaResponseDTO> obtenerHistorial() {
         Long negocioId = securityUtils.getCurrentNegocio().getId();
 
-        return auditoriaRepository.findByNegocioIdOrderByFechaHoraDesc(negocioId)
+        // TOP 15 para no saturar el Dashboard
+        return auditoriaRepository.findTop15ByNegocioIdOrderByFechaHoraDesc(negocioId)
                 .stream()
                 .map(aud -> new AuditoriaResponseDTO(
                         aud.getId(),

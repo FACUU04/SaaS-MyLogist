@@ -10,6 +10,7 @@ export default function CrearNegocio() {
     fundacion: "",
     adminUsername: "",
     adminPassword: "",
+    diasPrueba: 30, // <-- Valor por defecto
   });
 
   const [loading, setLoading] = useState(false);
@@ -37,23 +38,22 @@ export default function CrearNegocio() {
         nroNegocio: uuidv4().slice(0, 8),
         umbralStock: 10,
         activo: true,
+        diasPrueba: Number(form.diasPrueba), // <-- Enviamos el dato al backend
         adminUsername: form.adminUsername,
         adminPassword: form.adminPassword,
       });
 
-      setSuccess("¡Negocio y administrador creados correctamente!");
+      setSuccess("El registro del negocio y su administrador se ha completado con éxito.");
       
-      // Limpiamos el formulario después de crear
       setForm({
         nombre: "", contactoEmail: "", telefono: "",
-        fundacion: "", adminUsername: "", adminPassword: "",
+        fundacion: "", adminUsername: "", adminPassword: "", diasPrueba: 30
       });
 
-      // Borramos el cartel verde después de 4 segundos
-      setTimeout(() => setSuccess(""), 4000);
+      setTimeout(() => setSuccess(""), 5000);
 
     } catch (err) {
-      setError(err.message || "Error al crear negocio");
+      setError(err.message || "Ocurrió un error al intentar procesar el registro.");
     } finally {
       setLoading(false);
     }
@@ -61,74 +61,80 @@ export default function CrearNegocio() {
 
   return (
     <div className="sa-view">
-      <h1>Crear Negocio</h1>
-      <p>Da de alta un nuevo cliente en la plataforma MyLogist.</p>
+      <div className="sa-view-header">
+        <h1>Nuevo Registro</h1>
+        <p>Ingresa los datos para dar de alta un nuevo cliente en MyLogist.</p>
+      </div>
 
-      {/* Alertas */}
-      {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>❌ {error}</div>}
-      {success && <div style={{ background: '#dcfce7', color: '#166534', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>✅ {success}</div>}
+      {error && <div className="sa-alert sa-alert-error">{error}</div>}
+      {success && <div className="sa-alert sa-alert-success">{success}</div>}
 
-      <form className="sa-card" onSubmit={handleSubmit}>
-        <div className="sa-form-grid">
-          
-          {/* COLUMNA 1: Datos del Negocio */}
-          <div>
-            <h3 style={{ marginBottom: '1.2rem', color: '#2563eb', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
-              🏢 Datos del Negocio
-            </h3>
-
-            <div className="sa-form-group">
-              <label>Nombre del negocio</label>
-              <input className="sa-input" name="nombre" value={form.nombre} onChange={handleChange} required placeholder="Ej. Ferretería San José" />
-            </div>
-
-            <div className="sa-form-group">
-              <label>Email de contacto</label>
-              <input className="sa-input" type="email" name="contactoEmail" value={form.contactoEmail} onChange={handleChange} required placeholder="contacto@empresa.com" />
-            </div>
-
-            <div className="sa-form-group">
-              <label>Teléfono</label>
-              <input className="sa-input" name="telefono" value={form.telefono} onChange={handleChange} required placeholder="+54 11 1234-5678" />
-            </div>
-
-            <div className="sa-form-group">
-              <label>Fecha de inicio</label>
-              <input className="sa-input" type="date" name="fundacion" value={form.fundacion} onChange={handleChange} required />
-            </div>
-          </div>
-
-          {/* COLUMNA 2: Datos del Admin */}
-          <div>
-            <h3 style={{ marginBottom: '1.2rem', color: '#2563eb', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
-              👤 Administrador Inicial
-            </h3>
-
-            <div className="sa-form-group">
-              <label>Usuario</label>
-              <input className="sa-input" name="adminUsername" value={form.adminUsername} onChange={handleChange} required placeholder="Ej. admin_sanjose" />
-            </div>
-
-            <div className="sa-form-group">
-              <label>Contraseña</label>
-              <input className="sa-input" type="password" name="adminPassword" value={form.adminPassword} onChange={handleChange} required placeholder="••••••••" />
-            </div>
+      <div className="sa-form-container">
+        <form onSubmit={handleSubmit}>
+          <div className="sa-form-grid">
             
-            <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '1rem' }}>
-              ℹ️ Estas son las credenciales que el cliente usará para ingresar por primera vez a su panel.
-            </p>
+            {/* COLUMNA 1: Datos del Negocio */}
+            <div>
+              <h3 className="sa-form-section-title">Datos Comerciales</h3>
+
+              <div className="sa-form-group">
+                <label>Razón Social / Nombre del Negocio</label>
+                <input className="sa-input" name="nombre" value={form.nombre} onChange={handleChange} required placeholder="Ej. Distribuidora Central" />
+              </div>
+
+              <div className="sa-form-group">
+                <label>Correo Electrónico de Contacto</label>
+                <input className="sa-input" type="email" name="contactoEmail" value={form.contactoEmail} onChange={handleChange} required placeholder="contacto@empresa.com" />
+              </div>
+
+              <div className="sa-form-group">
+                <label>Teléfono Comercial</label>
+                <input className="sa-input" name="telefono" value={form.telefono} onChange={handleChange} required placeholder="+54 11 0000-0000" />
+              </div>
+
+              <div className="sa-form-group">
+                <label>Fecha de Inicio de Actividades</label>
+                <input className="sa-input" type="date" name="fundacion" value={form.fundacion} onChange={handleChange} required />
+              </div>
+            </div>
+
+            {/* COLUMNA 2: Datos del Admin y Suscripción */}
+            <div>
+              <h3 className="sa-form-section-title">Credenciales de Acceso</h3>
+
+              <div className="sa-form-group">
+                <label>Nombre de Usuario</label>
+                <input className="sa-input" name="adminUsername" value={form.adminUsername} onChange={handleChange} required placeholder="Ej. admin_empresa" />
+              </div>
+
+              <div className="sa-form-group">
+                <label>Contraseña Temporal</label>
+                <input className="sa-input" type="password" name="adminPassword" value={form.adminPassword} onChange={handleChange} required placeholder="••••••••" />
+              </div>
+              
+              <h3 className="sa-form-section-title" style={{ marginTop: '2rem' }}>Suscripción SaaS</h3>
+              <div className="sa-form-group">
+                <label>Días de Período de Prueba</label>
+                <input className="sa-input" type="number" min="1" name="diasPrueba" value={form.diasPrueba} onChange={handleChange} required />
+              </div>
+              
+              <div style={{ padding: '1rem', background: 'var(--sa-bg)', borderRadius: '6px', marginTop: '1.5rem', border: '1px solid var(--sa-border)' }}>
+                <p style={{ fontSize: '0.85rem', color: 'var(--sa-text-muted)', lineHeight: '1.5', margin: 0 }}>
+                  <strong>Nota:</strong> Estas credenciales otorgan acceso total al panel. El cronómetro de {form.diasPrueba} días de prueba iniciará en el momento del alta.
+                </p>
+              </div>
+            </div>
+
           </div>
 
-        </div>
+          <div style={{ marginTop: '2.5rem', display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--sa-border)', paddingTop: '1.5rem' }}>
+            <button type="submit" className="btn-sa btn-primary" disabled={loading} style={{ minWidth: '200px' }}>
+              {loading ? "Procesando Alta..." : "Registrar Cliente"}
+            </button>
+          </div>
 
-        {/* BOTONERA */}
-        <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #e2e8f0', paddingTop: '1.5rem' }}>
-          <button type="submit" className="btn-sa btn-primary" disabled={loading} style={{ width: '100%', maxWidth: '250px' }}>
-            {loading ? "Creando..." : "➕ Crear negocio y usuario"}
-          </button>
-        </div>
-
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

@@ -21,14 +21,25 @@ public class DashboardDTO {
     private long ventasTotales;
     private long ventasUltimoMes;
 
+    // Agregamos la lista para el gráfico mensual
+    private List<BalanceMensualDTO> balanceMensual;
+
     private List<TopProductoDTO> topProductos;
     private List<ProductoBajoStockDTO> bajoStock;
     private List<AuditoriaResumenDTO> auditoria;
 
+    // DTO Interno para el gráfico
+    @Data @AllArgsConstructor @NoArgsConstructor
+    public static class BalanceMensualDTO {
+        private String name;
+        private BigDecimal ingresos;
+        private BigDecimal egresos;
+    }
+
     @Data @AllArgsConstructor
     public static class TopProductoDTO {
         private String nombre;
-        private BigDecimal cantidad; // FIX: DetalleVenta usa BigDecimal
+        private BigDecimal cantidad;
     }
 
     @Data @AllArgsConstructor
@@ -37,7 +48,7 @@ public class DashboardDTO {
         private String nombre;
         private String marca;
         private String descripcion;
-        private Double cantidadStock; // FIX: Producto usa Double y camelCase
+        private Double cantidadStock;
     }
 
     @Data @AllArgsConstructor
@@ -47,7 +58,7 @@ public class DashboardDTO {
         private String usuario;
         private String accion;
         private String entidad;
-        private String entidadId; // FIX: Auditoria usa String
+        private String entidadId;
         private String detalles;
     }
 }

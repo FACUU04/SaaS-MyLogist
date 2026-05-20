@@ -8,11 +8,14 @@ import com.Control.Inventario.repository.NegocioRepository;
 import com.Control.Inventario.service.SuperAdminService;
 import com.Control.Inventario.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 
@@ -26,18 +29,20 @@ public class SuperAdminNegocioController {
     private final UserService userService;
     private final SuperAdminService superAdminService;
 
-    // LISTAR NEGOCIOS
+    // LISTAR NEGOCIOS CON PAGINACIÓN
     @GetMapping
-    public List<NegocioResponseDTO> listarNegocios() {
-        return negocioRepository.findAll()
-                .stream()
-                .map(n -> {
+    public Page<NegocioResponseDTO> listarNegocios(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
 
+        return negocioRepository.findAll(pageable)
+                .map(n -> {
                     Optional<User> admin = n.getUsuarios()
                             .stream()
                             .findFirst(); // asumimos 1 admin por negocio
 
-                    // Ahora pasamos los 8 parámetros del DTO
                     return new NegocioResponseDTO(
                             n.getId(),
                             n.getNombre(),
@@ -46,10 +51,12 @@ public class SuperAdminNegocioController {
                             n.isActivo(),
                             admin.map(User::getUsername).orElse(null),
                             n.getTicketCabecera(),
-                            n.getTicketPie()
+                            n.getTicketPie(),
+                            n.getFechaAlta(),
+                            n.getDiasPrueba(),
+                            n.getEstadoSuscripcion()
                     );
-                })
-                .toList();
+                });
     }
 
     // CREAR NEGOCIO + ADMIN INICIAL
@@ -59,6 +66,10 @@ public class SuperAdminNegocioController {
         Negocio negocio = Negocio.builder()
                 .nombre(request.getNombre())
                 .nroNegocio(request.getNroNegocio())
+                .fechaAlta(LocalDate.now())
+                // Toma el valor del request, si es null le pone 30 por defecto
+                .diasPrueba(request.getDiasPrueba() != null ? request.getDiasPrueba() : 30)
+                .estadoSuscripcion("PRUEBA")
                 .fundacion(request.getFundacion())
                 .rubro(request.getRubro())
                 .ubicacionLocal(request.getUbicacionLocal())
@@ -107,6 +118,10 @@ public class SuperAdminNegocioController {
         if (request.getTicketCabecera() != null) negocio.setTicketCabecera(request.getTicketCabecera());
         if (request.getTicketPie() != null) negocio.setTicketPie(request.getTicketPie());
 
+        // Si desde el SuperAdmin editás los días de prueba o el estado
+        if (request.getDiasPrueba() != null) negocio.setDiasPrueba(request.getDiasPrueba());
+        // Acá podríamos agregar también editar el estadoSuscripcion si lo mandás en el request futuro
+
         negocioRepository.save(negocio);
 
         return ResponseEntity.ok(
@@ -137,10 +152,7 @@ public class SuperAdminNegocioController {
     // ELIMINAR NEGOCIO
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminarNegocio(@PathVariable Long id) {
-
-        // Usamos el borrado en cascada en vez del deleteById
         superAdminService.eliminarNegocioDefinitivamente(id);
-
         return ResponseEntity.ok(
                 Map.of("message", "Negocio eliminado correctamente")
         );

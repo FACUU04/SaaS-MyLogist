@@ -21,7 +21,12 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     Optional<Producto> findByIdAndNegocio(Long id, Negocio negocio);
 
-    // --- NUEVOS MÉTODOS PARA EL DASHBOARD ---
+    // --- NUEVA CONSULTA DE BÚSQUEDA PARA PAGINACIÓN ---
+    @Query("SELECT p FROM Producto p WHERE p.negocio = :negocio AND p.activo = :activo AND " +
+            "(LOWER(p.marca) LIKE LOWER(CONCAT('%', :busqueda, '%')) OR LOWER(p.descripcion) LIKE LOWER(CONCAT('%', :busqueda, '%')))")
+    Page<Producto> buscarConFiltro(@Param("negocio") Negocio negocio, @Param("activo") boolean activo, @Param("busqueda") String busqueda, Pageable pageable);
+
+    // --- MÉTODOS PARA EL DASHBOARD ---
 
     long countByNegocioAndActivoTrue(Negocio negocio);
 

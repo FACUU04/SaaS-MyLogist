@@ -27,7 +27,20 @@ public class Negocio {
     @Column(name = "nro_negocio", length = 20)
     private String nroNegocio;
 
-    private LocalDate fundacion;
+    // --- DATOS DE SUSCRIPCIÓN SAAS ---
+    @Column(name = "fecha_alta")
+    private LocalDate fechaAlta;
+
+    @Column(name = "dias_prueba")
+    @Builder.Default
+    private Integer diasPrueba = 30;
+
+    @Column(name = "estado_suscripcion", length = 20)
+    @Builder.Default
+    private String estadoSuscripcion = "PRUEBA";
+
+    // --- DATOS COMERCIALES ---
+    private LocalDate fundacion; // ¡Acá está el campo que faltaba!
 
     @Column(length = 50)
     private String rubro;
@@ -54,9 +67,15 @@ public class Negocio {
     @Builder.Default
     private boolean activo = true;
 
-    // CORTAMOS EL BUCLE ACÁ
     @OneToMany(mappedBy = "negocio", fetch = FetchType.LAZY)
     @Builder.Default
     @JsonIgnore
     private Set<User> usuarios = new HashSet<>();
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.fechaAlta == null) {
+            this.fechaAlta = LocalDate.now();
+        }
+    }
 }

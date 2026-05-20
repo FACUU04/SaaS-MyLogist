@@ -1,5 +1,7 @@
 package com.Control.Inventario.dto;
 
+import java.time.LocalDate;
+
 public record NegocioResponseDTO(
         Long id,
         String nombre,
@@ -8,5 +10,8 @@ public record NegocioResponseDTO(
         boolean activo,
         String adminUsername,
         String ticketCabecera,
-        String ticketPie
+        String ticketPie,
+        LocalDate fechaAlta,
+        Integer diasPrueba,
+        String estadoSuscripcion
 ) {}

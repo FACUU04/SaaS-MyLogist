@@ -33,30 +33,63 @@ const InventarioView = () => {
   
   const [verEliminados, setVerEliminados] = useState(false);
 
-  // NUEVO: Estado para controlar el modal del Excel
+  // Estado para controlar el modal del Excel
   const [mostrarImportar, setMostrarImportar] = useState(false);
 
   // Estados para modales de confirmación
   const [modalConfirm, setModalConfirm] = useState({ isOpen: false, id: null });
   const [modalRestaurar, setModalRestaurar] = useState({ isOpen: false, id: null });
 
-  useEffect(() => {
-    cargarDatosIniciales(verEliminados);
-  }, []);
+  // Estados de la paginación
+  const [paginaActual, setPaginaActual] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
+  const [totalElementos, setTotalElementos] = useState(0);
 
-  const cargarDatosIniciales = async (mostrarEliminados = verEliminados) => {
+  // EFECTO DE CARGA Y BÚSQUEDA (Debounce)
+  // Reemplaza al useEffect vacío. Reacciona cuando cambia la búsqueda o la vista.
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      cargarDatosIniciales(verEliminados, 0, busqueda);
+    }, 500); // Espera 500ms al dejar de escribir
+
+    return () => clearTimeout(timeoutId);
+  }, [busqueda, verEliminados]);
+
+  const cargarDatosIniciales = async (mostrarEliminados = verEliminados, pagina = 0, terminoBusqueda = busqueda) => {
     try {
-      const endpoint = mostrarEliminados ? "productos/eliminados" : "productos";
+      // Armamos la URL agregando el parámetro de búsqueda si existe
+      const queryBusqueda = terminoBusqueda ? `&buscar=${encodeURIComponent(terminoBusqueda)}` : "";
+      const endpoint = mostrarEliminados 
+        ? `productos/eliminados?page=${pagina}&size=10${queryBusqueda}` 
+        : `productos?page=${pagina}&size=10${queryBusqueda}`;
+
       const [productosData, negocioData] = await Promise.all([
-        fetchData(endpoint),
+        fetchData(endpoint, false), // false para que api.js no borre la paginación
         getNegocio(),
       ]);
 
-      const lista = Array.isArray(productosData)
-        ? productosData
-        : productosData?.content ?? [];
+      let lista = [];
+      let totalP = 1;
+      let totalE = 0;
+      let pagAct = 0;
+
+      const rootData = productosData?.data || productosData;
+
+      if (rootData && Array.isArray(rootData.content)) {
+        lista = rootData.content;
+        totalP = rootData.totalPages !== undefined ? rootData.totalPages : 1;
+        totalE = rootData.totalElements !== undefined ? rootData.totalElements : lista.length;
+        pagAct = rootData.page !== undefined ? rootData.page : 0;
+      } else if (Array.isArray(rootData)) {
+        lista = rootData;
+        totalE = rootData.length;
+      }
 
       setProductos(lista);
+      setTotalPaginas(totalP);
+      setTotalElementos(totalE);
+      setPaginaActual(pagAct);
+      
       setNegocio(Array.isArray(negocioData) ? negocioData[0] : negocioData);
     } catch (err) {
       console.error("Error cargando datos:", err);
@@ -67,7 +100,7 @@ const InventarioView = () => {
   const toggleVistaEliminados = () => {
     const nuevoEstado = !verEliminados;
     setVerEliminados(nuevoEstado);
-    cargarDatosIniciales(nuevoEstado);
+    setBusqueda(""); // Limpiamos el buscador al cambiar de pestaña
   };
 
   const abrirNuevo = () => {
@@ -127,7 +160,7 @@ const InventarioView = () => {
         toast.success("Producto creado correctamente");
       }
       cerrarModal();
-      cargarDatosIniciales(verEliminados);
+      cargarDatosIniciales(verEliminados, paginaActual, busqueda);
     } catch (err) {
       console.error("Error en la operación:", err);
       toast.error("Error al guardar el producto");
@@ -142,7 +175,7 @@ const InventarioView = () => {
     try {
       await deleteData(`productos/${modalConfirm.id}`);
       toast.info("Producto deshabilitado del inventario");
-      cargarDatosIniciales(verEliminados);
+      cargarDatosIniciales(verEliminados, paginaActual, busqueda);
     } catch (err) {
       console.error("Error al eliminar:", err);
       toast.error("No se pudo deshabilitar el producto");
@@ -155,7 +188,7 @@ const InventarioView = () => {
     try {
       await putData(`productos/${modalRestaurar.id}/restaurar`, {});
       toast.success("Producto restaurado y activo nuevamente");
-      cargarDatosIniciales(verEliminados);
+      cargarDatosIniciales(verEliminados, paginaActual, busqueda);
     } catch (err) {
       console.error("Error al restaurar:", err);
       toast.error("No se pudo restaurar el producto");
@@ -163,12 +196,6 @@ const InventarioView = () => {
       setModalRestaurar({ isOpen: false, id: null });
     }
   };
-
-  const productosFiltrados = productos.filter((p) =>
-    `${p.marca || ""} ${p.descripcion || ""}`
-      .toLowerCase()
-      .includes(busqueda.toLowerCase())
-  );
 
   const umbralStock = negocio?.umbralStock ?? negocio?.umbral_stock ?? null;
 
@@ -182,18 +209,15 @@ const InventarioView = () => {
           <button 
             className={`btn-secundario ${verEliminados ? "btn-activo" : ""}`} 
             onClick={toggleVistaEliminados}
-            style={{ marginRight: "10px" }}
           >
             {verEliminados ? "Ver Inventario Activo" : "Ver Eliminados"}
           </button>
           
           {!verEliminados && (
             <>
-              {/* NUEVO: Botón para abrir el modal de importación */}
               <button 
                 className="btn-secundario" 
                 onClick={() => setMostrarImportar(true)}
-                style={{ marginRight: "10px" }}
               >
                 Importar Excel
               </button>
@@ -229,7 +253,7 @@ const InventarioView = () => {
             </tr>
           </thead>
           <tbody>
-            {productosFiltrados.map((p) => {
+            {productos.map((p) => {
               const estaBajoStock = umbralStock !== null && p.cantidad_stock < umbralStock && !verEliminados;
               return (
                 <tr key={p.id_producto || p.id} className={estaBajoStock ? "bajo-stock-row" : ""}>
@@ -264,15 +288,40 @@ const InventarioView = () => {
                 </tr>
               );
             })}
-            {productosFiltrados.length === 0 && (
+            {productos.length === 0 && (
               <tr>
                 <td colSpan="6" className="sin-datos">
-                  {verEliminados ? "No hay productos eliminados." : "No se encontraron productos."}
+                  {verEliminados 
+                    ? (busqueda ? "No hay productos eliminados que coincidan con la búsqueda." : "No hay productos eliminados.") 
+                    : (busqueda ? "No se encontraron productos con esa búsqueda." : "No se encontraron productos.")}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+
+        {/* CONTROLES DE PAGINACIÓN */}
+        {totalElementos > 0 && (
+          <div className="paginacion-container">
+            <button 
+              className="btn-paginacion"
+              disabled={paginaActual === 0} 
+              onClick={() => cargarDatosIniciales(verEliminados, paginaActual - 1, busqueda)}
+            >
+              Anterior
+            </button>
+            <span className="paginacion-info">
+              Página <strong>{paginaActual + 1}</strong> de {totalPaginas} ({totalElementos} resultados)
+            </span>
+            <button 
+              className="btn-paginacion"
+              disabled={paginaActual >= totalPaginas - 1} 
+              onClick={() => cargarDatosIniciales(verEliminados, paginaActual + 1, busqueda)}
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Modal de Creación/Edición */}
@@ -362,11 +411,11 @@ const InventarioView = () => {
         </div>
       )}
 
-      {/* NUEVO: Modal de Importación de Excel */}
+      {/* Modal de Importación de Excel */}
       {mostrarImportar && (
         <ImportarExcelModal
           onClose={() => setMostrarImportar(false)}
-          onImportacionExitosa={() => cargarDatosIniciales(verEliminados)}
+          onImportacionExitosa={() => cargarDatosIniciales(verEliminados, 0, "")}
         />
       )}
 

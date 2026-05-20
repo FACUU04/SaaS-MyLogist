@@ -23,7 +23,7 @@ public class OrdenController {
 
     private final OrdenCompraService ordenCompraService;
     private final OrdenCompraRepository ordenCompraRepository;
-    private final UserRepository userRepository; // Lo sumamos para saber de qué negocio es el que hace la petición
+    private final UserRepository userRepository;
 
     /**
      * Endpoint para crear una nueva orden de compra.
@@ -58,7 +58,7 @@ public class OrdenController {
     }
 
     /**
-     * Endpoint general (Por si React lo sigue pidiendo), pero filtrado herméticamente
+     * Endpoint general filtrado herméticamente
      */
     @GetMapping
     public ResponseEntity<List<OrdenCompra>> listarTodas(Authentication auth) {

@@ -3,7 +3,7 @@ package com.Control.Inventario.controller;
 import com.Control.Inventario.dto.PageResponse;
 import com.Control.Inventario.dto.ProductoRequest;
 import com.Control.Inventario.dto.ProductoResponseDTO;
-import com.Control.Inventario.dto.ImportacionExcelResponseDTO; 
+import com.Control.Inventario.dto.ImportacionExcelResponseDTO;
 import com.Control.Inventario.service.ProductoService;
 import com.Control.Inventario.service.ImportacionExcelService;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +21,15 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProductoController {
 
     private final ProductoService productoService;
-    private final ImportacionExcelService importacionExcelService; // NUEVO: Se inyecta automáticamente gracias a @RequiredArgsConstructor
+    private final ImportacionExcelService importacionExcelService;
 
     // LISTAR PRODUCTOS (SOLO ACTIVOS) - Lectura permitida para ventas e inventario
     @GetMapping
     @PreAuthorize("@permisos.puedeGestionarInventario(authentication.name) or @permisos.puedeVender(authentication.name)")
-    public PageResponse<ProductoResponseDTO> listar(Pageable pageable) {
-        Page<ProductoResponseDTO> page = productoService.listarProductosDelNegocio(pageable);
+    public PageResponse<ProductoResponseDTO> listar(
+            @RequestParam(required = false) String buscar,
+            Pageable pageable) {
+        Page<ProductoResponseDTO> page = productoService.listarProductosDelNegocio(buscar, pageable);
         return new PageResponse<>(
                 page.getContent(),
                 page.getNumber(),
@@ -39,8 +41,10 @@ public class ProductoController {
     // LISTAR PRODUCTOS ELIMINADOS (INACTIVOS) - Lectura permitida para ventas e inventario
     @GetMapping("/eliminados")
     @PreAuthorize("@permisos.puedeGestionarInventario(authentication.name) or @permisos.puedeVender(authentication.name)")
-    public PageResponse<ProductoResponseDTO> listarEliminados(Pageable pageable) {
-        Page<ProductoResponseDTO> page = productoService.listarProductosEliminados(pageable);
+    public PageResponse<ProductoResponseDTO> listarEliminados(
+            @RequestParam(required = false) String buscar,
+            Pageable pageable) {
+        Page<ProductoResponseDTO> page = productoService.listarProductosEliminados(buscar, pageable);
         return new PageResponse<>(
                 page.getContent(),
                 page.getNumber(),
@@ -91,7 +95,6 @@ public class ProductoController {
         if (resultado.isExito()) {
             return ResponseEntity.ok(resultado);
         } else {
-            // Devolvemos 400 Bad Request con la lista de errores si el Excel viene mal armado
             return ResponseEntity.badRequest().body(resultado);
         }
     }

@@ -43,8 +43,7 @@ const DashboardContent = ({ selected, user, onLogout }) => {
       try {
         switch (selected) {
           case "dashboard": {
-            // ¡MAGIA! Acá ya no descargamos nada pesado.
-            // DashboardView se encarga él solito de pedir el resumen ultra rápido.
+          
             setData({}); 
             break;
           }
@@ -107,7 +106,7 @@ const DashboardContent = ({ selected, user, onLogout }) => {
 
   switch (selected) {
     case "dashboard":
-      // Ya no le pasamos las listas pesadas. DashboardView es independiente.
+    
       return <DashboardView />; 
     case "inventario":
       return <InventarioView productos={data.productos} />;

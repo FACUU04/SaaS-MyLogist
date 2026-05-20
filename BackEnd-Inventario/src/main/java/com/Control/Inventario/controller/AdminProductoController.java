@@ -18,18 +18,18 @@ public class AdminProductoController {
 
     private final ProductoService productoService;
 
-
-    // LISTAR PRODUCTOS DEL NEGOCIO
+    // LISTAR PRODUCTOS DEL NEGOCIO (Ahora soporta búsqueda)
     @GetMapping
     public Page<ProductoResponseDTO> listar(
+            @RequestParam(required = false) String buscar, // <-- Agregamos el parámetro acá
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         return productoService.listarProductosDelNegocio(
+                buscar, // <-- Y se lo pasamos al servicio acá
                 PageRequest.of(page, size)
         );
     }
-
 
     // CREAR PRODUCTO
     @PostMapping
@@ -40,7 +40,6 @@ public class AdminProductoController {
                 productoService.crearProducto(request)
         );
     }
-
 
     // EDITAR PRODUCTO
     @PutMapping("/{id}")
@@ -53,4 +52,3 @@ public class AdminProductoController {
         );
     }
 }
-

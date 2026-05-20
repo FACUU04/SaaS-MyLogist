@@ -1,5 +1,6 @@
 package com.Control.Inventario.service;
 
+import com.Control.Inventario.config.security.CustomUserDetails;
 import com.Control.Inventario.entity.Role;
 import com.Control.Inventario.entity.User;
 import io.jsonwebtoken.Claims;
@@ -7,6 +8,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -60,6 +62,15 @@ public class JwtService {
                         SignatureAlgorithm.HS256
                 )
                 .compact();
+    }
+
+    // --- NUEVO: MÉTODO ADAPTADOR PARA SOPORTE (Impersonation) ---
+    public String generateToken(UserDetails userDetails) {
+        // Verificamos que sea tu clase personalizada para poder extraer la entidad User real
+        if (userDetails instanceof CustomUserDetails customUser) {
+            return generateAccessToken(customUser.getUser());
+        }
+        throw new IllegalArgumentException("El UserDetails debe ser una instancia de CustomUserDetails");
     }
 
 

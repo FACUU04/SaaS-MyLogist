@@ -25,6 +25,14 @@
   color: #0f172a;
 }
 
+/* Nuevo contenedor para los botones del header */
+.header-acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; /* Esto reemplaza los marginRight en línea */
+  flex-wrap: wrap;
+}
+
 /* ---------- Herramientas (buscador) ---------- */
 .inventario-tools {
   display: flex;
@@ -156,5 +164,90 @@
   .form-row {
     flex-direction: column;
     gap: 0;
+  }
+  
+  .header-acciones {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* =========================================
+   ---------- Paginación ---------- 
+   ========================================= */
+.paginacion-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background-color: #ffffff;
+  border-top: 1px solid #e2e8f0;
+}
+
+.paginacion-info {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.paginacion-info strong {
+  color: #1e293b;
+}
+
+.btn-paginacion {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-paginacion:hover:not(:disabled) {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.btn-paginacion:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================================
+   ---------- Ajustes Extra ---------- 
+   ========================================= */
+
+/* Para el botón del Header cuando estás viendo los eliminados */
+.btn-activo {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  border-color: #1e293b !important;
+}
+
+/* Para el botón de confirmar deshabilitar producto en el modal */
+.btn-peligro {
+  background-color: #dc2626;
+  color: #ffffff;
+  border: 1px solid #b91c1c;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-peligro:hover {
+  background-color: #b91c1c;
+}
+
+/* Ajuste responsive para la paginación en celulares */
+@media screen and (max-width: 600px) {
+  .paginacion-container {
+    flex-direction: column;
+    gap: 1rem;
   }
 }

@@ -23,21 +23,35 @@ public class ProductoService {
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
     private final UserRepository userRepository;
-    private final AuditoriaService auditoriaService; // AGREGADO
+    private final AuditoriaService auditoriaService;
 
-    // -------- LISTAR (SOLO ACTIVOS) --------
-    public Page<ProductoResponseDTO> listarProductosDelNegocio(Pageable pageable) {
+    // -------- LISTAR (SOLO ACTIVOS) CON BÚSQUEDA --------
+    public Page<ProductoResponseDTO> listarProductosDelNegocio(String busqueda, Pageable pageable) {
         Negocio negocio = obtenerNegocioActual();
+
+        if (busqueda == null || busqueda.trim().isEmpty()) {
+            return productoRepository
+                    .findAllByNegocioAndActivoTrue(negocio, pageable)
+                    .map(ProductoMapper::toDto);
+        }
+
         return productoRepository
-                .findAllByNegocioAndActivoTrue(negocio, pageable)
+                .buscarConFiltro(negocio, true, busqueda, pageable)
                 .map(ProductoMapper::toDto);
     }
 
-    // -------- LISTAR ELIMINADOS (INACTIVOS) --------
-    public Page<ProductoResponseDTO> listarProductosEliminados(Pageable pageable) {
+    // -------- LISTAR ELIMINADOS (INACTIVOS) CON BÚSQUEDA --------
+    public Page<ProductoResponseDTO> listarProductosEliminados(String busqueda, Pageable pageable) {
         Negocio negocio = obtenerNegocioActual();
+
+        if (busqueda == null || busqueda.trim().isEmpty()) {
+            return productoRepository
+                    .findAllByNegocioAndActivoFalse(negocio, pageable)
+                    .map(ProductoMapper::toDto);
+        }
+
         return productoRepository
-                .findAllByNegocioAndActivoFalse(negocio, pageable)
+                .buscarConFiltro(negocio, false, busqueda, pageable)
                 .map(ProductoMapper::toDto);
     }
 

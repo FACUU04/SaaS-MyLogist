@@ -172,7 +172,7 @@
   font-size: 1.1rem;
 }
 
-/* ---------------- Lista bajo stock ---------------- */
+/* ---------------- Lista bajo stock (ACTUALIZADO - ALERTA ROJA) ---------------- */
 .bajo-stock-container {
   width: 100%;
   overflow-x: auto;
@@ -187,24 +187,43 @@
 
 .bajo-stock-card {
   flex: 0 0 220px;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
+  background: #fef2f2; /* Fondo rojo muy clarito */
+  border: 1px solid #fecaca; /* Borde rojo suave */
+  border-left: 5px solid #dc2626; /* Raya gruesa roja a la izquierda para llamar la atención */
   border-radius: 0.75rem;
   padding: 1.25rem;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.05); /* Sombra sutil con tono rojo */
 }
 
-.bajo-stock-card h5 {
-  color: #9a3412;
-  font-size: 1rem;
+.bajo-stock-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(220, 38, 38, 0.15);
+  border-left-color: #b91c1c; /* Se oscurece al pasar el mouse */
+}
+
+/* Corregido a h4 para que coincida con tu JSX */
+.bajo-stock-card h4 {
+  color: #991b1b; /* Rojo sangre oscuro para el título */
+  font-size: 1.1rem;
   margin: 0 0 0.5rem 0;
+  font-weight: 700;
 }
 
 .bajo-stock-card p {
-  color: #c2410c;
+  color: #7f1d1d !important; /* Forzado para que no lo pise el fix global del final de tu archivo */
   font-size: 0.9rem;
-  margin: 0;
-  font-weight: 600;
+  margin: 0 0 0.35rem 0;
+}
+
+/* Clase específica para que el numerito del stock resalte muchísimo */
+.bajo-stock-card .stock-alerta {
+  color: #dc2626 !important; /* Rojo puro brillante */
+  font-weight: 800;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0;
+  font-size: 0.95rem;
+  display: block;
 }
 
 /* ---------------- TABLAS RESPONSIVE ---------------- */
@@ -428,4 +447,22 @@
   color: #64748b !important;
   font-size: 0.9rem;
   font-weight: normal;
+}
+
+/*  Tabla Auditoría (Dashboard)  */
+.auditoria-container .table-responsive {
+  max-height: 350px; /* Limita la altura a unos 6 o 7 registros visibles */
+  overflow-y: auto;
+  border-radius: 0.5rem;
+  /* Sombra interior para dar la ilusión visual de que se puede scrollear */
+  box-shadow: inset 0 -10px 10px -10px rgba(0, 0, 0, 0.05); 
+}
+
+.auditoria-container thead th {
+  position: sticky;
+  top: 0;
+  background-color: #f8fafc; 
+  z-index: 10;
+  /* El box-shadow reemplaza al border-bottom para que no desaparezca al scrollear */
+  box-shadow: 0 1px 0px #e2e8f0; 
 }

@@ -16,6 +16,9 @@ public class NegocioRequest {
     private String telefono;
     private Integer umbralStock;
 
+    // Nuevo campo para configurar el período de prueba desde el SuperAdmin
+    private Integer diasPrueba;
+
     // Datos del admin inicial
     private String adminUsername;
     private String adminPassword;
