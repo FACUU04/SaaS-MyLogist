@@ -6,19 +6,11 @@ export default function Topbar({ user }) {
   return (
     <div className="topbar">
       <div className="user-info">
-        Bienvenido, <strong>{user.username}</strong>
+        Hola, <strong>{user.username}</strong>
       </div>
 
       <button
-        style={{
-          marginLeft: "1rem",
-          backgroundColor: "#f97316",
-          color: "white",
-          border: "none",
-          borderRadius: "0.375rem",
-          padding: "0.5rem 1rem",
-          cursor: "pointer",
-        }}
+        className="topbar-logout-btn"
         onClick={() => {
           localStorage.removeItem("token");
           window.location.href = "/login";
@@ -29,4 +21,3 @@ export default function Topbar({ user }) {
     </div>
   );
 }
-

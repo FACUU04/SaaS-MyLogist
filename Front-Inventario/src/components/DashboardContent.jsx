@@ -8,7 +8,6 @@ import VentasView from "./VentasView";
 import VentasRegistradasView from "./VentasRegistradasView";
 import ProveedoresView from "./ProveedoresView";
 import "../styles/DashboardContent.css";
-import "../styles/modules/HomeModule.css";
 
 const normalizePage = (res) => {
   if (!res) return [];

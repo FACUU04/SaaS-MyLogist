@@ -19,7 +19,6 @@ export default function NotificacionesView() {
     try {
       setLoading(true);
       const data = await getAvisosSA();
-      // Aseguramos que data sea un array antes de ordenar
       const arrayAvisos = Array.isArray(data) ? data : [];
       setAvisos(arrayAvisos.sort((a, b) => b.id - a.id));
     } catch (err) {
@@ -51,7 +50,7 @@ export default function NotificacionesView() {
       setSuccessMsg("¡Aviso despachado y activo en el sistema!");
       setTimeout(() => setSuccessMsg(""), 4000);
       
-      loadAvisos(); // Recargamos la tabla al instante
+      loadAvisos(); 
     } catch (err) {
       setErrorMsg("Error al enviar: " + err.message);
       setTimeout(() => setErrorMsg(""), 5000);
@@ -82,7 +81,7 @@ export default function NotificacionesView() {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '2rem' }}>
         
         {/* PANEL PARA ENVIAR AVISO */}
-        <div className="sa-card" style={{ padding: '1.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', height: 'fit-content' }}>
+        <div className="sa-card" style={{ padding: '1.5rem', height: 'fit-content' }}>
           <h3 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Redactar Nuevo Aviso</h3>
           <form onSubmit={handleSubmit}>
             <div className="sa-form-group">
@@ -123,7 +122,7 @@ export default function NotificacionesView() {
               {avisos.length > 0 ? avisos.map(a => (
                 <tr key={a.id}>
                   <td>
-                    <div style={{ fontWeight: '500', fontSize: '0.9rem', color: a.nivelAlerta === 'DANGER' ? '#dc2626' : a.nivelAlerta === 'WARNING' ? '#d97706' : '#2563eb' }}>
+                    <div style={{ fontWeight: '500', fontSize: '0.9rem', color: a.nivelAlerta === 'DANGER' ? '#f87171' : a.nivelAlerta === 'WARNING' ? '#fbbf24' : '#60a5fa' }}>
                       [{a.nivelAlerta}]
                     </div>
                     <div style={{ fontSize: '0.85rem', marginTop: '4px' }}>{a.mensaje}</div>
@@ -144,7 +143,7 @@ export default function NotificacionesView() {
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="4" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '2rem', color: 'var(--sa-text-muted)' }}>
                     No hay avisos registrados en el sistema.
                   </td>
                 </tr>

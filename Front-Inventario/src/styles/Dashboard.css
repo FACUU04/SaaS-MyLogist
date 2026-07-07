@@ -1,41 +1,68 @@
-/* Dashboard.css - Sistema Responsive Definitivo */
-
-* {
-  box-sizing: border-box;
+/* =========================================================================
+   SISTEMA DE DISEÑO HÍBRIDO: NAV DARK PREMIUM + CONTENT LIGHT
+   ========================================================================= */
+:root {
+  /* Navegación (Oscuro / Azul Profundo Premium) */
+  --nav-bg-solid: #020617; /* Base súper oscura */
+  --nav-border: rgba(255, 255, 255, 0.08);
+  --nav-text: #f8fafc;
+  --nav-text-muted: #94a3b8;
+  
+  /* Contenido (Claro) */
+  --content-bg: #f1f5f9; /* Gris sutilmente más oscuro para que resalten las tarjetas blancas */
+  --content-text-main: #0f172a; 
+  --content-text-muted: #64748b;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  
+  /* Acentos (Naranja MyLogist) */
+  --primary: #f97316;
+  --primary-hover: #ea580c;
+  --primary-light: #fff7ed;
 }
 
-/* ---------------- Contenedor principal ---------------- */
+* { box-sizing: border-box; }
+
+/* ---------------- CONTENEDOR PRINCIPAL ---------------- */
 .dashboard-container {
   display: flex;
   flex-direction: row;
   height: 100vh;
   width: 100vw;
   overflow: hidden; 
-  background-color: #f8fafc;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background-color: var(--content-bg);
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--content-text-main);
+  color-scheme: light;
 }
 
-/* ---------------- Sidebar (PC: Izquierda / Mobile: Abajo) ---------------- */
+/* ---------------- SIDEBAR (DARK PREMIUM CON SOMBRA) ---------------- */
 .sidebar {
   width: 260px;
-  background-color: #1e293b;
-  color: #f8fafc;
+  /* Gradiente oscuro con una levísima transparencia para el blur */
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(2, 6, 23, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid var(--nav-border);
+  /* Sombra clave para separarlo del fondo claro */
+  box-shadow: 4px 0 25px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   padding: 2rem 1.25rem;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
   z-index: 1000;
+  transition: all 0.3s ease;
 }
 
 .sidebar-logo {
   font-size: 1.75rem;
   font-weight: 800;
-  color: #f97316;
+  color: var(--nav-text);
   margin-bottom: 2.5rem;
   text-align: center;
   letter-spacing: -0.5px;
+  text-shadow: 0 4px 15px rgba(0,0,0,0.5); /* Le da brillo al logo */
 }
+.sidebar-logo span { color: var(--primary); }
 
 .sidebar ul {
   list-style: none;
@@ -51,22 +78,22 @@
   display: flex;
   align-items: center;
   padding: 0.85rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-weight: 500;
-  color: #cbd5e1;
+  font-weight: 600;
+  color: var(--nav-text-muted);
 }
 
 .sidebar li:hover {
-  background-color: #334155;
-  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--nav-text);
 }
 
 .sidebar li.active {
-  background-color: #f97316;
+  background-color: var(--primary);
   color: #ffffff;
-  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.2);
+  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
 }
 
 .sidebar li .icon {
@@ -77,7 +104,7 @@
   justify-content: center;
 }
 
-/* ---------------- Main Content ---------------- */
+/* ---------------- MAIN CONTENT ---------------- */
 .main-content {
   flex: 1;
   display: flex;
@@ -87,17 +114,19 @@
   position: relative;
 }
 
-/* ---------------- Topbar ---------------- */
+/* ---------------- TOPBAR (DARK GLASS CON SOMBRA) ---------------- */
 .topbar {
-  height: 70px;
-  min-height: 70px;
-  background-color: #ffffff;
+  height: 72px;
+  min-height: 72px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--nav-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Sombra hacia abajo */
   position: sticky;
   top: 0;
   z-index: 100;
@@ -105,228 +134,157 @@
 
 .topbar .user-info {
   font-size: 0.95rem;
-  color: #334155;
-  font-weight: 500;
+  color: var(--nav-text-muted);
+}
+.topbar .user-info strong {
+  color: var(--nav-text);
+  font-weight: 600;
 }
 
-.topbar button {
-  background-color: #f1f5f9;
-  color: #0f172a;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
+.topbar-logout-btn {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: 8px;
   padding: 0.5rem 1rem;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s ease;
 }
-
-.topbar button:hover {
-  background-color: #e2e8f0;
-  border-color: #94a3b8;
+.topbar-logout-btn:hover {
+  background: rgba(248, 113, 113, 0.15);
+  color: #fecaca;
+  box-shadow: 0 4px 12px rgba(248, 113, 113, 0.2);
 }
 
-/* ---------------- Contenido dashboard ---------------- */
+/* ---------------- CONTENIDO / VISTAS (LIGHT MODE) ---------------- */
 .dashboard-content {
-  padding: 2rem;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
   align-content: flex-start;
 }
 
-/* ---------------- Card Global ---------------- */
-.card {
-  background: #ffffff;
+/* Tarjetas Claras Impecables */
+.card, .negocio-info, .chart-section, .notas-container {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
   padding: 1.5rem;
-  border-radius: 1rem;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-.card h3 {
+.card h3, .notas-container h3 {
   margin-top: 0;
   margin-bottom: 1rem;
-  color: #0f172a;
+  color: var(--content-text-main);
   font-size: 1.15rem;
 }
 
-/* ---------------- Info negocio ---------------- */
-.negocio-info {
-  background: #ffffff;
-  padding: 1.5rem;
-  border-radius: 1rem;
-  border: 1px solid #e2e8f0;
-  margin-bottom: 1.5rem;
+/* Estilo para los KPI / Números grandes */
+.home-module { display: flex; flex-direction: column; gap: 1.5rem; width: 100%; }
+.cards-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1.25rem; width: 100%; }
+
+.card p {
+  color: var(--primary) !important;
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
 }
 
-.negocio-info h4 {
-  color: #f97316;
-  margin-top: 0;
-  margin-bottom: 0.75rem;
-  font-size: 1.1rem;
-}
+.chart-wrapper { margin-top: 1rem; width: 100%; height: auto; }
 
-/* ---------------- Lista bajo stock (ACTUALIZADO - ALERTA ROJA) ---------------- */
-.bajo-stock-container {
-  width: 100%;
-  overflow-x: auto;
-  padding-bottom: 1rem;
-}
-
-.bajo-stock-list {
-  display: flex;
-  gap: 1rem;
-  padding: 0.25rem;
-}
+/* ---------------- ALERTA BAJO STOCK (CLARO) ---------------- */
+.bajo-stock-container { width: 100%; overflow-x: auto; padding-bottom: 1rem; }
+.bajo-stock-list { display: flex; gap: 1rem; padding: 0.25rem; }
 
 .bajo-stock-card {
   flex: 0 0 220px;
-  background: #fef2f2; /* Fondo rojo muy clarito */
-  border: 1px solid #fecaca; /* Borde rojo suave */
-  border-left: 5px solid #dc2626; /* Raya gruesa roja a la izquierda para llamar la atención */
-  border-radius: 0.75rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #ef4444;
+  border-radius: 12px;
   padding: 1.25rem;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.05); /* Sombra sutil con tono rojo */
 }
+.bajo-stock-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15); }
+.bajo-stock-card h4 { color: #991b1b; font-size: 1.1rem; margin: 0 0 0.5rem 0; font-weight: 700; }
+.bajo-stock-card p { color: #7f1d1d !important; font-size: 0.9rem; font-weight: 500; margin: 0 0 0.35rem 0; }
+.bajo-stock-card .stock-alerta { color: #ef4444 !important; font-weight: 800; margin-top: 0.5rem; display: block; }
 
-.bajo-stock-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(220, 38, 38, 0.15);
-  border-left-color: #b91c1c; /* Se oscurece al pasar el mouse */
+/* ---------------- TABLAS (Dashboard) ---------------- */
+.table-responsive { width: 100%; overflow-x: auto; padding-bottom: 0.5rem; }
+.table-compras { min-width: 600px; border-collapse: collapse; width: 100%; }
+
+.auditoria-container .table-responsive { max-height: 350px; overflow-y: auto; border-radius: 0.5rem; }
+.auditoria-container thead th {
+  position: sticky;
+  top: 0;
+  background: #f1f5f9;
+  color: var(--content-text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  padding: 1rem;
+  border-bottom: 1px solid var(--card-border);
+  z-index: 10;
 }
-
-/* Corregido a h4 para que coincida con tu JSX */
-.bajo-stock-card h4 {
-  color: #991b1b; /* Rojo sangre oscuro para el título */
-  font-size: 1.1rem;
-  margin: 0 0 0.5rem 0;
-  font-weight: 700;
-}
-
-.bajo-stock-card p {
-  color: #7f1d1d !important; /* Forzado para que no lo pise el fix global del final de tu archivo */
+.auditoria-container td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--card-border);
   font-size: 0.9rem;
-  margin: 0 0 0.35rem 0;
+  color: var(--content-text-main);
 }
+.auditoria-container tr:hover td { background-color: #f8fafc; }
 
-/* Clase específica para que el numerito del stock resalte muchísimo */
-.bajo-stock-card .stock-alerta {
-  color: #dc2626 !important; /* Rojo puro brillante */
-  font-weight: 800;
-  margin-top: 0.5rem;
-  padding: 0.25rem 0;
-  font-size: 0.95rem;
-  display: block;
-}
-
-/* ---------------- TABLAS RESPONSIVE ---------------- */
-.table-responsive {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch; 
-  padding-bottom: 0.5rem; 
-}
-
-.table-compras {
-  min-width: 600px; 
-  border-collapse: collapse;
-}
-
-/* ---------------- Notas ---------------- */
-.notas-container {
-  grid-column: 1 / -1;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1rem;
-  padding: 1.5rem;
-}
-
-.notas-container h3 {
-  font-size: 1.25rem;
-  color: #0f172a;
-  margin-top: 0;
-  margin-bottom: 1.25rem;
-}
-
-.nota-input {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-/* FIX: Contraste forzado universal */
+/* ---------------- NOTAS (CLARO) ---------------- */
+.nota-input { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
 .nota-input input {
   flex: 1;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid #cbd5e1;
-  font-size: 1rem;
-  background-color: #ffffff !important;
-  color: #000000 !important;
-}
-
-.nota-input input::placeholder {
-  color: #64748b !important;
-}
-
-.nota-input input:focus {
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: #ffffff;
+  color: var(--content-text-main);
+  font-size: 0.95rem;
   outline: none;
-  border-color: #f97316;
+  transition: all 0.2s;
 }
+.nota-input input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
 
 .nota-input button {
-  background-color: #f97316;
+  background: var(--primary);
   color: white;
   border: none;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  padding: 0.85rem 1.5rem;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
-
-.nota-input button:hover {
-  background-color: #ea580c;
-}
-
-.notas-container ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
+.nota-input button:hover { background: var(--primary-hover); }
 
 .notas-container li {
-  background-color: #fef3c7;
+  background: #fffbeb;
   border: 1px solid #fde68a;
   padding: 1rem;
-  border-radius: 0.5rem;
+  border-radius: 12px;
   margin-bottom: 0.75rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: #92400e;
-  font-weight: 500;
 }
-
-.notas-container li button {
-  background: none;
-  border: none;
-  color: #dc2626;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 0.5rem;
-}
+.notas-container li button { background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; padding: 0.5rem; }
 
 /* =========================================
-   Responsive: Tablet y Celulares
+   RESPONSIVE: Celulares (Sidebar inferior Dark)
    ========================================= */
 @media screen and (max-width: 1024px) {
   .sidebar { width: 220px; }
@@ -334,135 +292,70 @@
 }
 
 @media screen and (max-width: 768px) {
-  .dashboard-container {
-    flex-direction: column;
-  }
+  .dashboard-container { flex-direction: column; }
+  .main-content { padding-bottom: calc(85px + env(safe-area-inset-bottom)); }
+  .topbar { padding: 0 1.25rem; }
+  .view-padding-container { padding: 1.25rem !important; } 
 
-  .main-content {
-    padding-bottom: calc(85px + env(safe-area-inset-bottom)); 
-  }
-
-  .topbar {
-    padding: 0 1.25rem;
-  }
-
-  .dashboard-content {
-    padding: 1.25rem;
-    gap: 1.25rem;
-  }
-
+  /* SIDEBAR INFERIOR ESTILO APP (MANTIENE DARK GLASS) */
   .sidebar {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    min-height: 75px;
-    height: auto;
+    bottom: 0; left: 0; width: 100%;
+    min-height: 75px; height: auto;
     padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom)) 0.5rem;
     flex-direction: row;
-    background-color: #ffffff;
-    border-top: 1px solid #e2e8f0;
-    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
-    box-sizing: border-box; 
+    background: rgba(15, 23, 42, 0.98);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--nav-border);
+    border-right: none;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15); /* Sombra hacia arriba */
+    z-index: 2000;
   }
-
-  .sidebar-logo {
-    display: none; 
-  }
-
-  /* FIX: Alineación exacta de los 6 botones */
+  .sidebar-logo { display: none; }
+  
   .sidebar ul {
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
     width: 100%;
-    gap: 2px; 
+    gap: 2px;
   }
 
   .sidebar li {
-    flex: 1; /* Todos miden igual */
+    flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 0.35rem 0.1rem; 
-    border-radius: 0.5rem;
-    color: #64748b;
-    font-size: 0.65rem; 
+    padding: 0.5rem 0.1rem;
+    border-radius: 12px;
+    color: var(--nav-text-muted);
+    font-size: 0.65rem;
     text-align: center;
-    min-width: 0; /* Previene desbordes */
   }
 
-  .sidebar li:hover {
-    background-color: transparent;
-    color: #f97316;
-  }
-
+  .sidebar li:hover { background: transparent; color: var(--nav-text); }
+  
   .sidebar li.active {
-    background-color: #fff7ed;
-    color: #f97316;
+    background: transparent;
+    border: none;
+    color: var(--primary);
     box-shadow: none;
   }
-
-  .sidebar li .icon {
-    margin-right: 0;
-    margin-bottom: 0.2rem;
-    font-size: 1.25rem; 
-  }
-
-  .nota-input {
-    flex-direction: column;
-  }
   
-  .nota-input button {
-    width: 100%;
+  /* Indicador visual superior para mobile */
+  .sidebar li.active::after {
+    content: '';
+    display: block;
+    width: 20px; height: 3px;
+    background: var(--primary);
+    border-radius: 2px;
+    margin-top: 4px;
+    box-shadow: 0 0 8px rgba(249,115,22,0.6); /* Le da brillo extra al indicador en celular */
   }
-}
 
-/* =========================================
-   FIX: Colores de texto forzados y estilos de números
-   ========================================= */
-
-/* Forzar que todo el texto suelto dentro del dashboard sea oscuro */
-.dashboard-content,
-.dashboard-content p,
-.dashboard-content span,
-.dashboard-content td,
-.dashboard-content li,
-.dashboard-content strong {
-  color: #0f172a !important; 
-}
-
-/* Estilo especial para los números gigantes de las cards */
-.card p {
-  color: #0f172a !important;
-  font-size: 1.8rem;
-  font-weight: 800;
-  margin: 0;
-  line-height: 1.2;
-}
-
-/* Las descripciones pequeñas si las hay (ej: umbral) */
-.umbral-info {
-  color: #64748b !important;
-  font-size: 0.9rem;
-  font-weight: normal;
-}
-
-/*  Tabla Auditoría (Dashboard)  */
-.auditoria-container .table-responsive {
-  max-height: 350px; /* Limita la altura a unos 6 o 7 registros visibles */
-  overflow-y: auto;
-  border-radius: 0.5rem;
-  /* Sombra interior para dar la ilusión visual de que se puede scrollear */
-  box-shadow: inset 0 -10px 10px -10px rgba(0, 0, 0, 0.05); 
-}
-
-.auditoria-container thead th {
-  position: sticky;
-  top: 0;
-  background-color: #f8fafc; 
-  z-index: 10;
-  /* El box-shadow reemplaza al border-bottom para que no desaparezca al scrollear */
-  box-shadow: 0 1px 0px #e2e8f0; 
+  .sidebar li .icon { margin: 0 0 0.2rem 0; font-size: 1.4rem; }
+  
+  .nota-input { flex-direction: column; }
+  .nota-input button { width: 100%; }
 }

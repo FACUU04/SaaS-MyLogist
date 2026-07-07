@@ -74,11 +74,24 @@ public class GlobalExceptionHandler {
     }
 
     // Este captura errores de lectura de archivo o negocio
+    // Este captura errores de negocio y filtra los errores internos del sistema
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntime(
             RuntimeException ex,
             HttpServletRequest req) {
-        return buildResponse(ex.getMessage(), "BUSINESS_ERROR", HttpStatus.BAD_REQUEST, req);
+
+        // 1. Guardamos el error real en la consola del servidor para poder debuggear
+        ex.printStackTrace();
+
+        // 2. Filtramos la fuga de información:
+        // Si la excepción viene del núcleo de Spring o Hibernate (paquetes 'org.springframework' o 'org.hibernate'),
+        // devolvemos un mensaje genérico. Si es un error manual tuyo, dejamos pasar tu mensaje.
+        String packageName = ex.getClass().getPackageName();
+        String safeMessage = (packageName.startsWith("org.springframework") || packageName.startsWith("org.hibernate"))
+                ? "Error interno al procesar los datos."
+                : ex.getMessage();
+
+        return buildResponse(safeMessage, "BUSINESS_ERROR", HttpStatus.BAD_REQUEST, req);
     }
 
     // FALLBACK 500

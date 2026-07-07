@@ -15,7 +15,6 @@ export default function ListNegocio() {
   const [confirmText, setConfirmText] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Estados para Paginación Real (Backend)
   const [currentPage, setCurrentPage] = useState(0); 
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -93,7 +92,6 @@ export default function ListNegocio() {
     return <div className="sa-view"><p>Cargando directorio de negocios...</p></div>;
   }
 
-  // Generador de array para los números de página (ej: [0, 1, 2])
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i);
 
   return (
@@ -125,36 +123,35 @@ export default function ListNegocio() {
             {negocios.length > 0 ? (
               negocios.map((n) => (
                 <tr key={n.id}>
-                  {/* ACÁ AGREGAMOS EL ID VISIBLE */}
                   <td>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 'bold', marginBottom: '2px' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--sa-text-muted)', fontWeight: 'bold', marginBottom: '2px' }}>
                       ID: #{n.id}
                     </div>
                     <strong>{n.nombre}</strong>
-                    <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Admin: {n.adminUsername}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--sa-text-muted)' }}>Admin: {n.adminUsername}</div>
                   </td>
                   <td>
                     <div>{n.contactoEmail}</div>
-                    <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '2px' }}>{n.telefono}</div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--sa-text-muted)', marginTop: '2px' }}>{n.telefono}</div>
                   </td>
                   <td>
                     <div>Alta: {n.fechaAlta}</div>
-                    <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Días: {n.diasPrueba}</div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--sa-text-muted)' }}>Días: {n.diasPrueba}</div>
                   </td>
                   <td>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'flex-start' }}>
                       <span className={`sa-badge ${n.activo ? "activo" : "suspendido"}`}>
                         {n.activo ? "Activo" : "Deshabilitado"}
                       </span>
-                      {n.estadoSuscripcion === "PRUEBA" && <span className="sa-badge" style={{ background: '#fef3c7', color: '#b45309' }}>Prueba</span>}
-                      {n.estadoSuscripcion === "VENCIDO" && <span className="sa-badge" style={{ background: '#fee2e2', color: '#b91c1c' }}>Vencido</span>}
+                      {n.estadoSuscripcion === "PRUEBA" && <span className="sa-badge warning">Prueba</span>}
+                      {n.estadoSuscripcion === "VENCIDO" && <span className="sa-badge suspendido">Vencido</span>}
                     </div>
                   </td>
                   <td>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                       <button 
-                        className="btn-sa" 
-                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', background: '#e0f2fe', color: '#0284c7', border: '1px solid #bae6fd' }} 
+                        className="btn-sa btn-ghost" 
+                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }} 
                         onClick={() => handleImpersonate(n)}
                         title={`Acceder al panel de ${n.nombre}`}
                       >
@@ -182,7 +179,7 @@ export default function ListNegocio() {
               ))
             ) : (
               <tr>
-                <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--sa-text-muted)' }}>
                   No se encontraron resultados en esta página.
                 </td>
               </tr>
@@ -190,32 +187,20 @@ export default function ListNegocio() {
           </tbody>
         </table>
 
-        {/* CONTROLES DE PAGINACIÓN VISIBLES */}
         {totalPages > 0 && (
-          <div className="sa-pagination" style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', padding: '1rem', background: '#fff', borderTop: '1px solid #e2e8f0' }}>
+          <div className="sa-pagination">
             <button 
               disabled={currentPage === 0} 
               onClick={() => loadNegocios(currentPage - 1)}
-              style={{ padding: '0.4rem 0.8rem', border: '1px solid #cbd5e1', borderRadius: '4px', background: currentPage === 0 ? '#f8fafc' : '#fff', cursor: currentPage === 0 ? 'not-allowed' : 'pointer', color: '#1e293b' }}
             >
               Anterior
             </button>
             
-            {/* Números de página */}
             {pageNumbers.map(number => (
               <button
                 key={number}
                 onClick={() => loadNegocios(number)}
-                style={{
-                  padding: '0.4rem 0.8rem',
-                  border: '1px solid',
-                  borderColor: currentPage === number ? '#2563eb' : '#cbd5e1',
-                  backgroundColor: currentPage === number ? '#2563eb' : '#fff',
-                  color: currentPage === number ? '#fff' : '#1e293b',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: currentPage === number ? '600' : '400'
-                }}
+                className={currentPage === number ? "active" : ""}
               >
                 {number + 1}
               </button>
@@ -224,7 +209,6 @@ export default function ListNegocio() {
             <button 
               disabled={currentPage >= totalPages - 1} 
               onClick={() => loadNegocios(currentPage + 1)}
-              style={{ padding: '0.4rem 0.8rem', border: '1px solid #cbd5e1', borderRadius: '4px', background: currentPage >= totalPages - 1 ? '#f8fafc' : '#fff', cursor: currentPage >= totalPages - 1 ? 'not-allowed' : 'pointer', color: '#1e293b' }}
             >
               Siguiente
             </button>
@@ -232,16 +216,15 @@ export default function ListNegocio() {
         )}
       </div>
 
-      {/* MODAL DE ELIMINACIÓN */}
       {deleteModal.isOpen && (
         <div className="sa-modal-overlay">
           <div className="sa-modal">
             <h2 style={{ color: 'var(--sa-danger)', marginBottom: '1rem', fontSize: '1.25rem' }}>Eliminar Negocio</h2>
-            <div style={{ background: 'var(--sa-danger-bg)', padding: '1rem', borderRadius: '6px', fontSize: '0.9rem', marginBottom: '1.5rem', color: '#991b1b', lineHeight: '1.5' }}>
+            <div className="sa-alert sa-alert-error" style={{ marginBottom: '1.5rem', lineHeight: '1.5' }}>
               Esta acción es irreversible. Se borrará permanentemente el negocio <strong>{deleteModal.negocio.nombre}</strong>, junto con su historial, inventario y usuarios asociados.
             </div>
             
-            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '500', marginBottom: '0.5rem', color: 'var(--sa-text-main)' }}>
               Escribe el nombre del negocio para confirmar:
             </label>
             <input 
@@ -253,8 +236,7 @@ export default function ListNegocio() {
             
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'flex-end' }}>
               <button 
-                className="btn-sa" 
-                style={{ background: '#f1f5f9', color: '#475569' }} 
+                className="btn-sa btn-ghost" 
                 onClick={() => setDeleteModal({ isOpen: false, negocio: null })}
               >
                 Cancelar

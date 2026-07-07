@@ -10,7 +10,7 @@ export default function CrearNegocio() {
     fundacion: "",
     adminUsername: "",
     adminPassword: "",
-    diasPrueba: 30, // <-- Valor por defecto
+    diasPrueba: 30, 
   });
 
   const [loading, setLoading] = useState(false);
@@ -38,7 +38,7 @@ export default function CrearNegocio() {
         nroNegocio: uuidv4().slice(0, 8),
         umbralStock: 10,
         activo: true,
-        diasPrueba: Number(form.diasPrueba), // <-- Enviamos el dato al backend
+        diasPrueba: Number(form.diasPrueba), 
         adminUsername: form.adminUsername,
         adminPassword: form.adminPassword,
       });
@@ -118,7 +118,7 @@ export default function CrearNegocio() {
                 <input className="sa-input" type="number" min="1" name="diasPrueba" value={form.diasPrueba} onChange={handleChange} required />
               </div>
               
-              <div style={{ padding: '1rem', background: 'var(--sa-bg)', borderRadius: '6px', marginTop: '1.5rem', border: '1px solid var(--sa-border)' }}>
+              <div className="sa-card" style={{ padding: '1rem', marginTop: '1.5rem' }}>
                 <p style={{ fontSize: '0.85rem', color: 'var(--sa-text-muted)', lineHeight: '1.5', margin: 0 }}>
                   <strong>Nota:</strong> Estas credenciales otorgan acceso total al panel. El cronómetro de {form.diasPrueba} días de prueba iniciará en el momento del alta.
                 </p>
@@ -127,7 +127,7 @@ export default function CrearNegocio() {
 
           </div>
 
-          <div style={{ marginTop: '2.5rem', display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--sa-border)', paddingTop: '1.5rem' }}>
+          <div style={{ marginTop: '2.5rem', display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--sa-glass-border)', paddingTop: '1.5rem' }}>
             <button type="submit" className="btn-sa btn-primary" disabled={loading} style={{ minWidth: '200px' }}>
               {loading ? "Procesando Alta..." : "Registrar Cliente"}
             </button>

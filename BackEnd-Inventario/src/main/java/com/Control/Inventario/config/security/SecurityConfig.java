@@ -57,13 +57,14 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // RESTRICCIÓN DE SEGURIDAD: Solo permitimos tu IP de AWS y tu entorno local
+        // RESTRICCIÓN DE SEGURIDAD: Solo permitimos ciertas IP
         configuration.setAllowedOrigins(List.of(
                 "http://35.175.207.14",
                 "http://localhost:5173",
                 "http://192.168.0.14:5173",
-                "http://192.168.0.8:5173",
-                "http://192.168.0.18:5173",
+                "http://192.168.0.5:5173",
+                "http://192.168.0.10:5173",
+                "http://192.168.0.8:8080",
                 "http://localhost"
         ));
 

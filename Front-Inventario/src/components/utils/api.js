@@ -1,5 +1,5 @@
 //const API_BASE = "/api";
-const API_BASE = "http://192.168.0.18:8080/api";
+const API_BASE = "http://192.168.0.10:8080/api"; // Cambiar a la URL de tu API en producción
 
 // HELPERS
 const handleResponse = async (res) => {
@@ -104,7 +104,7 @@ export const deleteData = async (endpoint) => {
 };
 
 
-// NEGOCIO (ADMIN) ✅ FIX
+// NEGOCIO (ADMIN)  FIX
 export const getNegocio = () => fetchData("negocio");
 
 // ---  FUNCIÓN OPTIMIZADA PARA EL DASHBOARD ---

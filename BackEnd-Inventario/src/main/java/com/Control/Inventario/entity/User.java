@@ -26,6 +26,10 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "password_reset_required")
+    @Builder.Default
+    private Boolean passwordResetRequired = false;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
@@ -41,7 +45,6 @@ public class User {
     @Builder.Default
     private boolean locked = false;
 
-    // CORTAMOS EL BUCLE ACÁ
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "negocio_id", nullable = false)
     @JsonIgnore
@@ -51,7 +54,6 @@ public class User {
     @JoinColumn(name = "empleado_id")
     private Empleado empleado;
 
-    // --- PERMISOS GRANULARES ---
     @Column(name = "permiso_ventas")
     @Builder.Default
     private boolean permisoVentas = true;

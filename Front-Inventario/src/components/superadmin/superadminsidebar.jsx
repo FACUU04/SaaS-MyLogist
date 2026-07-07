@@ -55,7 +55,6 @@ export default function SuperAdminSidebar({ view, setView, menuOpen, closeMenu }
           Nuevo Cliente
         </button>
 
-        {/* NUEVO BOTÓN: NOTIFICACIONES */}
         <button
           className={view === "notificaciones" ? "active" : ""}
           onClick={() => handleChangeView("notificaciones")}

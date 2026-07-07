@@ -39,8 +39,8 @@ const HistorialCompras = ({ proveedorId }) => {
             fecha: orden.fechaCreacion ? orden.fechaCreacion.split("T")[0] : "",
             estado: orden.estado, 
             metodoPago: orden.metodoPago,
-            obsGeneral: orden.observaciones, // Capturamos la nota general de la compra
-            obsProducto: det.observaciones,  // Capturamos la nota específica del producto
+            obsGeneral: orden.observaciones, 
+            obsProducto: det.observaciones,  
             idProducto: det.producto?.id,
             cantidad: det.cantidad,
             importe: det.precioUnitario,
@@ -109,19 +109,22 @@ const HistorialCompras = ({ proveedorId }) => {
             </thead>
             <tbody>
               {filas.map((f) => {
-                // Lógica para mostrar la observación más relevante y armar el tooltip (title)
                 const textoMostrar = f.obsProducto ? f.obsProducto : (f.esPrimeraFila ? f.obsGeneral : "-");
                 const tooltipCompleto = `General: ${f.obsGeneral || 'Ninguna'}\nProducto: ${f.obsProducto || 'Ninguna'}`;
+
+                // Aseguramos una comparación a prueba de fallos tipográficos mapeando a mayúsculas
+                const estadoNormalizado = String(f.estado).trim().toUpperCase();
+                const esPendiente = estadoNormalizado === "PENDIENTE" || estadoNormalizado === "PENDING";
 
                 return (
                   <tr 
                     key={f.idDetalle} 
-                    className={f.estado === 'RECIBIDA' ? 'fila-recibida' : ''}
+                    className={estadoNormalizado === 'RECIBIDA' || estadoNormalizado === 'RECEIVED' ? 'fila-recibida' : ''}
                   >
                     <td>{f.fecha}</td>
                     <td>
                       <span 
-                        className={`badge-estado ${f.estado === 'PENDIENTE' ? 'badge-pendiente' : 'badge-recibida'}`}
+                        className={`badge-estado ${esPendiente ? 'badge-pendiente' : 'badge-recibida'}`}
                       >
                         {f.estado}
                       </span>
@@ -138,13 +141,12 @@ const HistorialCompras = ({ proveedorId }) => {
                       <span className="badge-metodo">{f.metodoPago || "N/D"}</span>
                     </td>
                     
-                    {/* NUEVA COLUMNA OBSERVACIONES CON TU CLASE .obs-celda */}
                     <td className="obs-celda" title={tooltipCompleto} style={{ cursor: 'help' }}>
                       {textoMostrar || "-"}
                     </td>
 
                     <td>
-                      {f.esPrimeraFila && f.estado === 'PENDIENTE' && (
+                      {f.esPrimeraFila && esPendiente && (
                         <button 
                           className="btn-primario btn-recibir" 
                           onClick={() => handleMarcarRecibida(f.idOrden)}
