@@ -21,12 +21,12 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     Optional<Producto> findByIdAndNegocio(Long id, Negocio negocio);
 
-    // --- NUEVA CONSULTA DE BÚSQUEDA PARA PAGINACIÓN ---
+    // --- NUEVO: Búsqueda exacta para el escáner ---
+    Optional<Producto> findByCodigoBarrasAndNegocioAndActivoTrue(String codigoBarras, Negocio negocio);
+
     @Query("SELECT p FROM Producto p WHERE p.negocio = :negocio AND p.activo = :activo AND " +
             "(LOWER(p.marca) LIKE LOWER(CONCAT('%', :busqueda, '%')) OR LOWER(p.descripcion) LIKE LOWER(CONCAT('%', :busqueda, '%')))")
     Page<Producto> buscarConFiltro(@Param("negocio") Negocio negocio, @Param("activo") boolean activo, @Param("busqueda") String busqueda, Pageable pageable);
-
-    // --- MÉTODOS PARA EL DASHBOARD ---
 
     long countByNegocioAndActivoTrue(Negocio negocio);
 
@@ -36,6 +36,5 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @Query("SELECT p FROM Producto p WHERE p.negocio = :negocio AND p.activo = true AND p.cantidadStock < :umbral")
     List<Producto> findBajoStockList(@Param("negocio") Negocio negocio, @Param("umbral") Double umbral);
 
-    // --- MÉTODO PARA BORRADO EN CASCADA ---
     void deleteByNegocioId(Long negocioId);
 }

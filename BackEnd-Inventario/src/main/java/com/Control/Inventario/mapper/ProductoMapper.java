@@ -10,8 +10,10 @@ public class ProductoMapper {
                 producto.getId(),
                 producto.getMarca(),
                 producto.getDescripcion(),
+                producto.getCodigoBarras(),    // NUEVO
                 producto.getPrecio(),
                 producto.getCantidadStock(),
+                producto.getStockMinimo(),     // NUEVO
                 producto.getUnidad()
         );
     }

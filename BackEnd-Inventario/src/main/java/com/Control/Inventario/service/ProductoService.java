@@ -25,6 +25,17 @@ public class ProductoService {
     private final UserRepository userRepository;
     private final AuditoriaService auditoriaService;
 
+    // -------- NUEVO MÉTODO PARA EL ESCÁNER --------
+    public ProductoResponseDTO buscarPorCodigoBarras(String codigoBarras) {
+        Negocio negocio = obtenerNegocioActual();
+
+        Producto producto = productoRepository
+                .findByCodigoBarrasAndNegocioAndActivoTrue(codigoBarras, negocio)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado o inactivo para este código de barras"));
+
+        return ProductoMapper.toDto(producto);
+    }
+
     // -------- LISTAR (SOLO ACTIVOS) CON BÚSQUEDA --------
     public Page<ProductoResponseDTO> listarProductosDelNegocio(String busqueda, Pageable pageable) {
         Negocio negocio = obtenerNegocioActual();
@@ -70,6 +81,11 @@ public class ProductoService {
         producto.setMarca(request.getMarca());
         producto.setDescripcion(request.getDescripcion());
         producto.setCodigoFabricante(request.getCodigoFabricante());
+
+        // NUEVOS CAMPOS
+        producto.setCodigoBarras(request.getCodigoBarras());
+        producto.setStockMinimo(request.getStockMinimo() != null ? request.getStockMinimo() : 0.0);
+
         producto.setPrecio(request.getPrecio());
         producto.setCantidadStock(request.getCantidadStock());
         producto.setUnidad(request.getUnidad());
@@ -106,6 +122,11 @@ public class ProductoService {
         producto.setMarca(request.getMarca());
         producto.setDescripcion(request.getDescripcion());
         producto.setCodigoFabricante(request.getCodigoFabricante());
+
+        // NUEVOS CAMPOS
+        producto.setCodigoBarras(request.getCodigoBarras());
+        producto.setStockMinimo(request.getStockMinimo() != null ? request.getStockMinimo() : 0.0);
+
         producto.setPrecio(request.getPrecio());
         producto.setCantidadStock(request.getCantidadStock());
         producto.setUnidad(request.getUnidad());
@@ -127,6 +148,7 @@ public class ProductoService {
     // -------- ELIMINAR (BORRADO LÓGICO) --------
     @Transactional
     public void eliminarProducto(Long id) {
+        // ... (El resto queda igual, no hay cambios acá)
         Negocio negocio = obtenerNegocioActual();
         Producto producto = productoRepository
                 .findByIdAndNegocio(id, negocio)
@@ -135,7 +157,6 @@ public class ProductoService {
         producto.setActivo(false);
         productoRepository.save(producto);
 
-        // AUDITORIA
         auditoriaService.registrarAccion(
                 "ELIMINACION",
                 "Producto",
@@ -147,6 +168,7 @@ public class ProductoService {
     // -------- RESTAURAR (DESHACER BORRADO LÓGICO) --------
     @Transactional
     public void restaurarProducto(Long id) {
+        // ... (El resto queda igual, no hay cambios acá)
         Negocio negocio = obtenerNegocioActual();
         Producto producto = productoRepository
                 .findByIdAndNegocio(id, negocio)
@@ -155,7 +177,6 @@ public class ProductoService {
         producto.setActivo(true);
         productoRepository.save(producto);
 
-        // AUDITORIA
         auditoriaService.registrarAccion(
                 "RESTAURACION",
                 "Producto",

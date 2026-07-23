@@ -23,7 +23,8 @@ public class ProductoController {
     private final ProductoService productoService;
     private final ImportacionExcelService importacionExcelService;
 
-    // LISTAR PRODUCTOS (SOLO ACTIVOS) - Lectura permitida para ventas e inventario
+    // --- ENDPOINTS EXISTENTES ---
+
     @GetMapping
     @PreAuthorize("@permisos.puedeGestionarInventario(authentication.name) or @permisos.puedeVender(authentication.name)")
     public PageResponse<ProductoResponseDTO> listar(
@@ -38,7 +39,6 @@ public class ProductoController {
         );
     }
 
-    // LISTAR PRODUCTOS ELIMINADOS (INACTIVOS) - Lectura permitida para ventas e inventario
     @GetMapping("/eliminados")
     @PreAuthorize("@permisos.puedeGestionarInventario(authentication.name) or @permisos.puedeVender(authentication.name)")
     public PageResponse<ProductoResponseDTO> listarEliminados(
@@ -53,14 +53,24 @@ public class ProductoController {
         );
     }
 
-    // CREAR PRODUCTO - Escritura solo para inventario
+    // --- NUEVO ENDPOINT PARA EL ESCÁNER ---
+
+    @GetMapping("/codigo-barras/{codigo}")
+    @PreAuthorize("@permisos.puedeGestionarInventario(authentication.name) or @permisos.puedeVender(authentication.name)")
+    public ResponseEntity<ProductoResponseDTO> buscarPorCodigoBarras(@PathVariable String codigo) {
+        // Delegamos al servicio para que busque por código y filtre por el negocio del usuario actual
+        ProductoResponseDTO producto = productoService.buscarPorCodigoBarras(codigo);
+        return ResponseEntity.ok(producto);
+    }
+
+    // --------------------------------------
+
     @PostMapping
     @PreAuthorize("@permisos.puedeGestionarInventario(authentication.name)")
     public ProductoResponseDTO crear(@RequestBody ProductoRequest request) {
         return productoService.crearProducto(request);
     }
 
-    // ACTUALIZAR PRODUCTO - Escritura solo para inventario
     @PutMapping("/{id}")
     @PreAuthorize("@permisos.puedeGestionarInventario(authentication.name)")
     public ProductoResponseDTO actualizar(
@@ -70,7 +80,6 @@ public class ProductoController {
         return productoService.actualizarProducto(id, request);
     }
 
-    // ELIMINAR PRODUCTO (BORRADO LÓGICO) - Escritura solo para inventario
     @DeleteMapping("/{id}")
     @PreAuthorize("@permisos.puedeGestionarInventario(authentication.name)")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
@@ -78,7 +87,6 @@ public class ProductoController {
         return ResponseEntity.ok().build();
     }
 
-    // RESTAURAR PRODUCTO - Escritura solo para inventario
     @PutMapping("/{id}/restaurar")
     @PreAuthorize("@permisos.puedeGestionarInventario(authentication.name)")
     public ResponseEntity<Void> restaurar(@PathVariable Long id) {
@@ -86,12 +94,10 @@ public class ProductoController {
         return ResponseEntity.ok().build();
     }
 
-    // IMPORTAR DESDE EXCEL - Escritura solo para inventario
     @PostMapping("/importar")
     @PreAuthorize("@permisos.puedeGestionarInventario(authentication.name)")
     public ResponseEntity<ImportacionExcelResponseDTO> importarExcel(@RequestParam("file") MultipartFile file) {
         ImportacionExcelResponseDTO resultado = importacionExcelService.procesarExcel(file);
-
         if (resultado.isExito()) {
             return ResponseEntity.ok(resultado);
         } else {

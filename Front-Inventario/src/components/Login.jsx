@@ -62,7 +62,7 @@ export default function Login({ onLoginSuccess }) {
               <div className="logo-container">
                 {/* ACÁ VA TU LOGO: Reemplazá "/assets/logo.png" por tu ruta */}
                 <img 
-                  src="/src/icon.svg" 
+                  src="/icono.png" 
                   alt="MyLogist Logo" 
                   className="custom-logo" 
                 />
