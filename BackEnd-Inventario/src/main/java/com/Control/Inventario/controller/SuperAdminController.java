@@ -18,7 +18,7 @@ public class SuperAdminController {
     private final NegocioRepository negocioRepository;
     private final SuperAdminService superAdminService;
 
-    // --- TU MÉTODO ORIGINAL INTACTO ---
+    // ---  MÉTODO ORIGINAL INTACTO ---
     @GetMapping("/negocios/paginado")
     @PreAuthorize("hasRole('SUPERADMIN')")
     public Page<Negocio> listarNegociosPaginado(
@@ -28,7 +28,7 @@ public class SuperAdminController {
         return negocioRepository.findAll(PageRequest.of(page, size));
     }
 
-    // --- EL NUEVO MÉTODO DE BORRADO ---
+    // ---  NUEVO MÉTODO DE BORRADO ---
     @DeleteMapping("/negocio/{id}")
     @PreAuthorize("hasRole('SUPERADMIN')")
     public ResponseEntity<String> eliminarNegocioDefinitivo(@PathVariable Long id) {

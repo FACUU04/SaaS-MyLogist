@@ -1,5 +1,5 @@
-const API_BASE = "/api";
-//const API_BASE = "http://192.168.0.17:8080/api"; // Cambiar a la URL de tu API en producción
+//const API_BASE = "/api";
+const API_BASE = "http://192.168.0.32:8080/api"; // Cambiar a la URL de tu API en producción
 
 // HELPERS
 const handleResponse = async (res) => {

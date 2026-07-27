@@ -4,6 +4,7 @@ import { getTurnoActivo, abrirTurno, cerrarTurno } from "../components/utils/api
 import Select from "react-select";
 import { ToastContainer, toast } from "react-toastify";
 import { useReactToPrint } from "react-to-print"; 
+import { Barcode, AlertCircle, ShoppingCart, Trash2, CheckCircle2, MessageSquare } from "lucide-react";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/modules/VentasModule.css";
 import "../styles/ModalTurno.css"; 
@@ -60,8 +61,7 @@ const TicketToPrint = React.forwardRef(({ ventaFinal, productos, negocioConfig, 
   );
 });
 
-
-const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
+const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogout }) => {
   
   // ESTADOS DE TURNO Y CAJA
   const [turnoActivo, setTurnoActivo] = useState(null);
@@ -76,14 +76,22 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
   const [nota, setNota] = useState("");
   const [notas, setNotas] = useState([]);
 
-  // ESTADOS DE VENTAS
+  // ESTADOS DE VENTAS Y ESCÁNER
   const [venta, setVenta] = useState({ clienteId: null, detalles: [] });
   const [metodoPago, setMetodoPago] = useState("EFECTIVO"); 
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
-  const [cantidad, setCantidad] = useState("");
+  const [cantidad, setCantidad] = useState("1");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [ventaRegistrada, setVentaRegistrada] = useState(null); 
   
+  const [codigoEscaneado, setCodigoEscaneado] = useState("");
+  const scannerRef = useRef(null);
+
+  // ESTADOS PARA ALTA RÁPIDA (Producto no encontrado)
+  const [showAltaRapidaModal, setShowAltaRapidaModal] = useState(false);
+  const [codigoDesconocido, setCodigoDesconocido] = useState("");
+  const [nuevoProductoRapido, setNuevoProductoRapido] = useState({ descripcion: "", precio: "", stock: "1" });
+
   const componentRef = useRef();
 
   // CARGA DE DATOS
@@ -91,6 +99,13 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
     cargarTurno();
     cargarDatosSecundarios();
   }, []);
+
+  // Mantener el foco en el escáner
+  useEffect(() => {
+    if (turnoActivo && scannerRef.current && !showAltaRapidaModal && !showConfirmModal) {
+      scannerRef.current.focus();
+    }
+  }, [turnoActivo, showAltaRapidaModal, showConfirmModal]);
 
   const cargarTurno = async () => {
     try {
@@ -166,7 +181,40 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
     }
   };
 
-  // LÓGICA DE VENTA
+  // --- LÓGICA DEL ESCÁNER ULTRARRÁPIDO ---
+  const manejarEscaneo = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); 
+      if (!codigoEscaneado.trim()) return;
+
+      const codigoLimpio = codigoEscaneado.trim();
+      const productoEncontrado = productos.find(p => p.codigo_barras === codigoLimpio || p.codigo === codigoLimpio);
+
+      if (productoEncontrado) {
+        const idProd = productoEncontrado.id_producto || productoEncontrado.id;
+        const existente = venta.detalles.find((d) => d.productoId === idProd);
+        
+        let nuevosDetalles;
+        if (existente) {
+          nuevosDetalles = venta.detalles.map((d) =>
+            d.productoId === idProd ? { ...d, cantidad: d.cantidad + 1 } : d
+          );
+        } else {
+          nuevosDetalles = [...venta.detalles, { productoId: idProd, cantidad: 1 }];
+        }
+        
+        setVenta({ ...venta, detalles: nuevosDetalles });
+        toast.success(`Agregado: ${productoEncontrado.descripcion}`, { autoClose: 500, hideProgressBar: true });
+        setCodigoEscaneado("");
+      } else {
+        setCodigoDesconocido(codigoLimpio);
+        setShowAltaRapidaModal(true);
+        setCodigoEscaneado("");
+      }
+    }
+  };
+
+  // LÓGICA DE VENTA MANUAL MEJORADA
   const opcionesClientes = clientes.map((c) => ({
     value: c.id,
     label: `${c.nombre} ${c.apellido}`,
@@ -174,7 +222,7 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
 
   const opcionesProductos = productos.map((p) => ({
     value: p.id_producto || p.id,
-    label: `${p.descripcion} (${p.marca})`,
+    label: `${p.descripcion} (${p.marca || "S/M"})`,
   }));
 
   const productoActual = productos.find((p) => (p.id_producto || p.id) === productoSeleccionado);
@@ -184,6 +232,7 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
     if (!productoSeleccionado) return toast.warn("Seleccione un producto");
     const cantidadNumerica = parseFloat(cantidad.replace(",", "."));
     if (isNaN(cantidadNumerica) || cantidadNumerica <= 0) return toast.error("Cantidad no válida");
+    
     if (stockDisponible !== null && cantidadNumerica > parseFloat(stockDisponible)) {
       return toast.error("Stock insuficiente");
     }
@@ -199,9 +248,38 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
     }
 
     setVenta({ ...venta, detalles: nuevosDetalles });
-    setCantidad("");
+    setCantidad("1");
     setProductoSeleccionado(null);
-    toast.success("Producto añadido");
+    toast.success("Producto añadido", { autoClose: 500, hideProgressBar: true });
+    
+    if (scannerRef.current) scannerRef.current.focus();
+  };
+
+  // LÓGICA PARA GUARDAR EL ALTA RÁPIDA
+  const manejarAltaRapida = async (e) => {
+    e.preventDefault();
+    try {
+      const payloadNuevo = {
+        codigo_barras: codigoDesconocido,
+        descripcion: nuevoProductoRapido.descripcion,
+        precio: parseFloat(nuevoProductoRapido.precio),
+        cantidad_stock: parseInt(nuevoProductoRapido.stock)
+      };
+
+      const productoCreado = await postData("productos/rapido", payloadNuevo); 
+      
+      if(setProductos) setProductos([...productos, productoCreado]);
+      
+      const idNuevo = productoCreado.id_producto || productoCreado.id;
+      setVenta({ ...venta, detalles: [...venta.detalles, { productoId: idNuevo, cantidad: 1 }] });
+      
+      toast.success("Producto creado y agregado al carrito");
+      setShowAltaRapidaModal(false);
+      setNuevoProductoRapido({ descripcion: "", precio: "", stock: "1" });
+      
+    } catch (error) {
+      toast.error("Error al crear el producto. Revise los datos ingresados.");
+    }
   };
 
   const eliminarProducto = (id) => {
@@ -219,18 +297,17 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
       
       setVentaRegistrada({ ...payloadVenta, id: idVenta });
       setVenta({ clienteId: null, detalles: [] });
-      setCantidad("");
+      setCantidad("1");
       setProductoSeleccionado(null);
       setMetodoPago("EFECTIVO"); 
       setShowConfirmModal(false);
 
     } catch (err) {
       console.error(err);
-      toast.error("Error de conexión al registrar venta");
+      toast.error("Error de conexión al registrar la venta");
     }
   };
 
-  // LÓGICA DE IMPRESIÓN (Sintaxis actualizada)
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
     onAfterPrint: () => setVentaRegistrada(null), 
@@ -267,7 +344,6 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
     <div className="ventas-module">
       <ToastContainer position="top-right" autoClose={3000} />
       
-      {/* COMPONENTE DE IMPRESIÓN OCULTO */}
       <div style={{ display: "none" }}>
         {ventaRegistrada && (
           <TicketToPrint 
@@ -284,7 +360,10 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
       {ventaRegistrada && !showConfirmModal && (
         <div className="modal-overlay" style={{ zIndex: 9999 }}>
           <div className="modal-content modal-ticket" style={{ textAlign: 'center', padding: '40px' }}>
-            <h2 style={{ color: '#16a34a' }}>Venta Finalizada</h2>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px', color: '#16a34a' }}>
+              <CheckCircle2 size={48} />
+            </div>
+            <h2 style={{ color: '#16a34a', marginTop: 0 }}>Venta Finalizada</h2>
             <p>El registro se ha procesado con éxito.</p>
             <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '30px' }}>
               <button className="btn-secundario" onClick={() => setVentaRegistrada(null)}>Finalizar</button>
@@ -294,10 +373,39 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
         </div>
       )}
 
-      <div className="ventas-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* MODAL DE ALTA RÁPIDA DE PRODUCTO */}
+      {showAltaRapidaModal && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <div className="modal-content">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f59e0b', marginBottom: '15px' }}>
+              <AlertCircle size={28} />
+              <h2 style={{ margin: 0, color: 'inherit' }}>Producto No Reconocido</h2>
+            </div>
+            <p>El código <strong>{codigoDesconocido}</strong> no existe en los registros. ¿Desea darlo de alta rápidamente para continuar con la operación?</p>
+            
+            <form onSubmit={manejarAltaRapida} style={{ marginTop: '20px' }}>
+              <div className="form-group">
+                <label>Descripción del Producto:</label>
+                <input type="text" required autoFocus value={nuevoProductoRapido.descripcion} onChange={e => setNuevoProductoRapido({...nuevoProductoRapido, descripcion: e.target.value})} placeholder="Ej: Producto Estándar" style={{ width: '100%', padding: '10px' }} />
+              </div>
+              <div className="form-group" style={{ marginTop: '10px' }}>
+                <label>Precio de Venta ($):</label>
+                <input type="number" step="0.01" required value={nuevoProductoRapido.precio} onChange={e => setNuevoProductoRapido({...nuevoProductoRapido, precio: e.target.value})} style={{ width: '100%', padding: '10px' }} />
+              </div>
+              
+              <div style={{ display: 'flex', gap: '10px', marginTop: '25px' }}>
+                <button type="button" className="btn-secundario" onClick={() => setShowAltaRapidaModal(false)}>Cancelar</button>
+                <button type="submit" className="btn-primario">Guardar y Vender</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div className="ventas-header">
         <div>
           <h2>Módulo de Ventas</h2>
-          <span className="turno-info" style={{ color: '#16a34a', fontSize: '0.85rem', fontWeight: 'bold' }}>
+          <span className="turno-info">
             Estado: Turno Activo
           </span>
         </div>
@@ -305,6 +413,25 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
       </div>
 
       <div className="form-panel">
+        
+        {/* INPUT DEL ESCÁNER */}
+        <div className="escaner-container">
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Barcode size={20} className="text-slate-700" /> Escáner de Código de Barras
+          </label>
+          <input 
+            className="escaner-input"
+            type="text" 
+            ref={scannerRef}
+            value={codigoEscaneado} 
+            onChange={(e) => setCodigoEscaneado(e.target.value)}
+            onKeyDown={manejarEscaneo}
+            placeholder="Pase el producto por el lector láser..." 
+            autoFocus
+          />
+          <span className="escaner-hint">El cursor debe permanecer en este campo para habilitar la lectura.</span>
+        </div>
+
         <div className="form-row-ventas">
           <div className="input-group-ventas">
             <label>Cliente</label>
@@ -319,7 +446,7 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
 
         <div className="form-row-ventas buscador-producto-row">
           <div className="input-group-ventas flex-2">
-            <label>Producto</label>
+            <label>Búsqueda Manual</label>
             <Select
               className="react-select-container" classNamePrefix="react-select"
               options={opcionesProductos} value={opcionesProductos.find((o) => o.value === productoSeleccionado)}
@@ -334,36 +461,47 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
           <div className="input-group-ventas flex-1">
             <label>Cantidad</label>
             <div className="cantidad-input-wrapper">
-              <input id="cantidad" type="text" inputMode="decimal" placeholder="0" value={cantidad} onChange={(e) => setCantidad(e.target.value)} />
-              <button className="btn-agregar-producto" onClick={agregarProducto} disabled={!productoSeleccionado}>Agregar</button>
+              <input 
+                id="cantidad" 
+                type="text" 
+                inputMode="decimal" 
+                value={cantidad} 
+                onChange={(e) => setCantidad(e.target.value)} 
+                onKeyDown={(e) => e.key === 'Enter' && agregarProducto()} 
+              />
+              <button className="btn-agregar-producto" onClick={agregarProducto} disabled={!productoSeleccionado}>Añadir</button>
             </div>
           </div>
         </div>
       </div>
 
       <div className="ticket-panel">
-        <h3 className="ticket-title">Resumen de Operación</h3>
+        <h3 className="ticket-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ShoppingCart size={18} /> Resumen de Operación
+        </h3>
         <div className="table-responsive-wrapper">
           <table className="ventas-table ticket-table">
             <thead>
               <tr>
                 <th>Detalle</th>
                 <th className="text-center">Cant.</th>
-                <th className="text-right">Remover</th>
+                <th className="text-right">Acción</th>
               </tr>
             </thead>
             <tbody>
               {venta.detalles.length === 0 ? (
-                <tr><td colSpan="3" className="celda-vacia">Pendiente de productos.</td></tr>
+                <tr><td colSpan="3" className="celda-vacia">No hay productos en la lista.</td></tr>
               ) : (
                 venta.detalles.map((d, i) => {
                   const infoP = productos.find(p => (p.id_producto || p.id) === d.productoId);
                   return (
                     <tr key={i}>
-                      <td>{infoP ? `${infoP.descripcion} (${infoP.marca})` : `Prod #${d.productoId}`}</td>
+                      <td>{infoP ? `${infoP.descripcion} (${infoP.marca || "S/M"})` : `Prod #${d.productoId}`}</td>
                       <td className="text-center">{d.cantidad}</td>
                       <td className="text-right">
-                        <button className="btn-accion btn-eliminar" onClick={() => eliminarProducto(d.productoId)}>Quitar</button>
+                        <button className="btn-accion btn-eliminar" onClick={() => eliminarProducto(d.productoId)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Trash2 size={14} /> Quitar
+                        </button>
                       </td>
                     </tr>
                   );
@@ -381,7 +519,9 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
 
       {/* MURO DE MENSAJES */}
       <div className="notas-container" style={{ marginTop: '30px' }}>
-        <h3>Muro de Comunicaciones</h3>
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <MessageSquare size={18} /> Muro de Comunicaciones
+        </h3>
         <div className="nota-input">
           <input
             type="text"
@@ -412,7 +552,7 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
       {showConfirmModal && (
         <div className="modal-overlay">
           <div className="modal-content modal-ticket">
-            <div className="modal-header"><h3>Resumen de Cobro</h3></div>
+            <div className="modal-header"><h3 style={{ marginTop: 0 }}>Resumen de Cobro</h3></div>
             <div className="modal-body ticket-body">
               <div className="ticket-cliente-info">
                 <span>Cliente:</span>
@@ -445,10 +585,10 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
               </div>
 
               <div className="metodo-pago-selector" style={{ marginTop: '1.5rem' }}>
-                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem' }}>Método de Pago:</label>
+                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem', color: '#475569' }}>Método de Pago:</label>
                 <select 
                   value={metodoPago} onChange={(e) => setMetodoPago(e.target.value)}
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }}
                 >
                   <option value="EFECTIVO">Efectivo</option>
                   <option value="TRANSFERENCIA">Transferencia / Billetera Digital</option>
@@ -461,33 +601,6 @@ const VentasView = ({ productos = [], clientes = [], user, onLogout }) => {
               <button className="btn-cancelar" onClick={() => setShowConfirmModal(false)}>Regresar</button>
               <button className="btn-primario" onClick={registrarVenta}>Confirmar Operación</button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL CIERRE CAJA */}
-      {showCerrarModal && (
-        <div className="modal-overlay">
-          <div className="modal-caja">
-            <h2>Cierre de Caja</h2>
-            <p>Ingrese el total de dinero físico contado en caja.</p>
-            <form onSubmit={handleCerrarCaja}>
-              <div className="form-group">
-                <label>Efectivo real en caja:</label>
-                <div className="input-dinero">
-                  <span>$</span>
-                  <input type="number" step="0.01" required value={montoCierre} onChange={(e) => setMontoCierre(e.target.value)} />
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Observaciones de cierre:</label>
-                <textarea value={observacionesCierre} onChange={(e) => setObservacionesCierre(e.target.value)} placeholder="Detalle cualquier novedad aquí..." />
-              </div>
-              <div className="modal-acciones">
-                <button type="button" onClick={() => setShowCerrarModal(false)} className="btn-secundario">Cancelar</button>
-                <button type="submit" className="btn-primario">Cerrar Turno</button>
-              </div>
-            </form>
           </div>
         </div>
       )}

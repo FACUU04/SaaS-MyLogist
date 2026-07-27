@@ -11,6 +11,11 @@ import com.Control.Inventario.entity.User;
 import com.Control.Inventario.entity.TurnoCaja;
 import com.Control.Inventario.entity.EstadoTurno;
 import com.Control.Inventario.entity.MetodoPago;
+// NUEVAS IMPORTACIONES:
+import com.Control.Inventario.entity.MovimientoInventario;
+import com.Control.Inventario.entity.TipoMovimiento;
+import com.Control.Inventario.repository.MovimientoInventarioRepository;
+
 import com.Control.Inventario.mapper.VentaMapper;
 import com.Control.Inventario.repository.ProductoRepository;
 import com.Control.Inventario.repository.VentaRepository;
@@ -32,18 +37,23 @@ public class VentaService {
     private final ProductoRepository productoRepository;
     private final UserRepository userRepository;
     private final TurnoCajaRepository turnoCajaRepository;
-    private final AuditoriaService auditoriaService; // AGREGADO
+    private final AuditoriaService auditoriaService;
+
+    // NUEVA DEPENDENCIA
+    private final MovimientoInventarioRepository movimientoInventarioRepository;
 
     public VentaService(VentaRepository ventaRepository,
                         ProductoRepository productoRepository,
                         UserRepository userRepository,
                         TurnoCajaRepository turnoCajaRepository,
-                        AuditoriaService auditoriaService) { // INYECTADO
+                        AuditoriaService auditoriaService,
+                        MovimientoInventarioRepository movimientoInventarioRepository) { // INYECTADO
         this.ventaRepository = ventaRepository;
         this.productoRepository = productoRepository;
         this.userRepository = userRepository;
         this.turnoCajaRepository = turnoCajaRepository;
         this.auditoriaService = auditoriaService;
+        this.movimientoInventarioRepository = movimientoInventarioRepository;
     }
 
     public Page<VentaResponseDTO> listarVentasDelNegocioPaginadas(Integer mes, Integer anio, String username, Pageable pageable) {
@@ -87,12 +97,24 @@ public class VentaService {
                 throw new RuntimeException("Stock insuficiente para el producto: " + producto.getDescripcion());
             }
 
+            // 1. DESCONTAMOS EL STOCK DEL PRODUCTO
             producto.setCantidadStock(
                     BigDecimal.valueOf(producto.getCantidadStock())
                             .subtract(cantidadVendida)
                             .doubleValue()
             );
             productoRepository.save(producto);
+
+            // 2. NUEVO: REGISTRAMOS EL MOVIMIENTO EN EL LIBRO MAYOR
+            MovimientoInventario movimiento = new MovimientoInventario(
+                    producto,
+                    usuarioLogueado.getNegocio(),
+                    cantidadVendida.doubleValue() * -1, // Lo ponemos en negativo porque es una salida
+                    TipoMovimiento.VENTA,
+                    "Venta en mostrador", // Descripción estándar
+                    usuarioLogueado.getUsername()
+            );
+            movimientoInventarioRepository.save(movimiento);
 
             BigDecimal precio = BigDecimal.valueOf(producto.getPrecio());
             BigDecimal subtotal = precio.multiply(cantidadVendida);
@@ -113,7 +135,6 @@ public class VentaService {
 
         Venta ventaGuardada = ventaRepository.save(venta);
 
-        
         // AUDITORÍA: REGISTRO DE NUEVA VENTA
         auditoriaService.registrarAccion(
                 "CREACION",

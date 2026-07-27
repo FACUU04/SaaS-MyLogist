@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { 
-  getNegocio, updateNegocio, getNotas, createNota, deleteNota, getDashboardResumen
-} from "../components/utils/api";
+import { getNegocio, updateNegocio, getNotas, createNota, deleteNota, getDashboardResumen } from "../components/utils/api";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import HistorialVentas from "../components/UI/HistorialVentas"; 
 import BalanceGrafico from "../components/UI/BalanceGrafico"; 
+import { 
+  Sparkles, Package, Users, Briefcase, BadgeDollarSign, TrendingUp, 
+  AlertTriangle, Activity, Settings, MessageSquare, CheckCircle, Store, ShieldAlert
+} from "lucide-react";
+import "react-toastify/dist/ReactToastify.css";
 import "../styles/Dashboard.css";
 import "../styles/Modal.css";
 
@@ -17,38 +19,29 @@ const DashboardView = () => {
   const [notas, setNotas] = useState([]);
 
   useEffect(() => {
-    if (mostrarModal) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
+    if (mostrarModal) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "auto";
     return () => { document.body.style.overflow = "auto"; };
   }, [mostrarModal]);
 
   useEffect(() => {
     const cargarDatosIniciales = async () => {
       try {
-        // 1. Cargamos Negocio
         const dataNegocio = await getNegocio();
         const negocioData = Array.isArray(dataNegocio) ? dataNegocio[0] : dataNegocio;
-        const negocioTransformado = {
+        setNegocio({
           ...negocioData,
           umbralStock: negocioData?.umbral_stock ?? null,
           ticketCabecera: negocioData?.ticket_cabecera ?? "",
           ticketPie: negocioData?.ticket_pie ?? ""            
-        };
-        setNegocio(negocioTransformado);
+        });
 
-        // 2. Cargamos Notas
         const dataNotas = await getNotas();
         setNotas(Array.isArray(dataNotas) ? dataNotas : []);
 
-        // 3. CARGAMOS EL RESUMEN OPTIMIZADO (Acá ya viene el balanceMensual)
         const dataResumen = await getDashboardResumen();
         setResumen(dataResumen);
-
       } catch (err) {
-        console.error("Error al cargar datos iniciales:", err);
         toast.error("Error de conexión con el servidor");
       }
     };
@@ -57,9 +50,7 @@ const DashboardView = () => {
 
   const parseFecha = (fecha) => {
     if (!fecha) return new Date(0);
-    if (Array.isArray(fecha)) {
-      return new Date(fecha[0], fecha[1] - 1, fecha[2], fecha[3] || 0, fecha[4] || 0);
-    }
+    if (Array.isArray(fecha)) return new Date(fecha[0], fecha[1] - 1, fecha[2], fecha[3] || 0, fecha[4] || 0);
     return new Date(fecha);
   };
 
@@ -89,8 +80,7 @@ const DashboardView = () => {
   const guardarCambiosNegocio = async (datosActualizados) => {
     try {
       if (!datosActualizados.nombre || !datosActualizados.rubro) {
-        toast.warn("Completá los campos obligatorios.");
-        return;
+        return toast.warn("Completá los campos obligatorios.");
       }
       const payload = {
         id: negocio.id,
@@ -126,226 +116,216 @@ const DashboardView = () => {
   };
 
   if (!resumen) {
-    return <div className="dashboard-content"><h2>Cargando panel...</h2></div>;
+    return <div className="dashboard-content"><div className="loader-clean">Sincronizando panel...</div></div>;
   }
 
   return (
     <div className="dashboard-content">
       <ToastContainer position="top-right" autoClose={3000} />
-      <h2>Panel General</h2>
-
-      {/* 1. CARDS */}
-      <div className="cards-container">
-        <div className="card"><h3>Total Productos</h3><p>{resumen.totalProductos}</p></div>
-        <div className="card"><h3>Clientes</h3><p>{resumen.totalClientes}</p></div>
-        <div className="card"><h3>Empleados</h3><p>{resumen.totalEmpleados}</p></div>
-        <div className="card"><h3>Ventas Totales</h3><p>{resumen.ventasTotales}</p></div>
-        <div className="card"><h3>Ventas último mes</h3><p>{resumen.ventasUltimoMes}</p></div>
+      
+      {/* 1. RINCÓN INTELIGENTE (GEMINI IA) */}
+      <div className="ai-insight-card">
+        <div className="ai-header">
+          <Sparkles className="ai-icon" size={24} />
+          <h3>Análisis Inteligente</h3>
+        </div>
+        <p className="ai-text">
+          {resumen.consejoIA || "Tus métricas están estables. Basado en el volumen de operaciones, te sugerimos revisar el inventario de los 3 productos más vendidos para evitar quiebres de stock este fin de semana."}
+        </p>
       </div>
 
-      {/* GRÁFICOS */}
-      <div className="graficos-container" style={{ display: 'flex', flexDirection: 'column', gap: '30px', margin: '30px 0' }}>
-        
-        <div className="historial-seccion">
-          <h3>Evolución de Ventas</h3>
+      {/* 2. TARJETAS DE MÉTRICAS (KPIs) */}
+      <div className="kpi-grid">
+        <div className="kpi-card">
+          <div className="kpi-icon-wrapper blue"><BadgeDollarSign size={24} /></div>
+          <div className="kpi-info">
+            <span className="kpi-label">Ventas Totales</span>
+            <h3 className="kpi-value">{resumen.ventasTotales}</h3>
+          </div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-icon-wrapper orange"><TrendingUp size={24} /></div>
+          <div className="kpi-info">
+            <span className="kpi-label">Ventas (Último mes)</span>
+            <h3 className="kpi-value">{resumen.ventasUltimoMes}</h3>
+          </div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-icon-wrapper slate"><Package size={24} /></div>
+          <div className="kpi-info">
+            <span className="kpi-label">Productos Activos</span>
+            <h3 className="kpi-value">{resumen.totalProductos}</h3>
+          </div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-icon-wrapper green"><Users size={24} /></div>
+          <div className="kpi-info">
+            <span className="kpi-label">Clientes Registrados</span>
+            <h3 className="kpi-value">{resumen.totalClientes}</h3>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. GRÁFICOS */}
+      <div className="graficos-grid">
+        <div className="card grafico-card">
+          <div className="card-header"><Activity size={20} /> <h3>Evolución de Ventas</h3></div>
           <HistorialVentas />
         </div>
-
-        <div className="balance-seccion">
-          <h3>Balance Mensual (Ingresos vs Egresos)</h3>
-          {/* El gráfico recibe la data procesada directo del backend */}
+        <div className="card grafico-card">
+          <div className="card-header"><BadgeDollarSign size={20} /> <h3>Balance Mensual</h3></div>
           <BalanceGrafico data={resumen.balanceMensual || []} />
         </div>
-
       </div>
 
-      {/* 2. TOP PRODUCTOS */}
-      <div className="top-productos-container">
-        <h3>Top Productos Vendidos (último mes)</h3>
-        {resumen.topProductos && resumen.topProductos.length > 0 ? (
-          <ul className="lista-simple">
-            {resumen.topProductos.map((p, i) => (
-              <li key={i}>
-                <strong>{p.nombre}</strong>: {p.cantidad} unidades
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="texto-vacio">No hay ventas registradas este mes.</p>
-        )}
-      </div>
-
-      {/* 3. BAJO STOCK */}
-      <div className="bajo-stock-container">
-        <h3>
-          Productos con Bajo Stock{" "}
-          {negocio?.umbralStock !== null && <span className="umbral-info">(Umbral: {negocio.umbralStock})</span>}
-        </h3>
-        {negocio?.umbralStock === null ? (
-          <p className="texto-vacio">No hay umbral configurado en los ajustes.</p>
-        ) : resumen.bajoStock && resumen.bajoStock.length > 0 ? (
-          <div className="bajo-stock-list">
-            {resumen.bajoStock.map((p) => (
-              <div key={p.id} className="bajo-stock-card">
-                <h4>{p.nombre}</h4>
-                <p><strong>Marca:</strong> {p.marca}</p>
-                <p><strong>Descripción:</strong> {p.descripcion}</p>
-                <p className="stock-alerta"><strong>Stock Actual:</strong> {p.cantidadStock}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="texto-vacio">Todos los productos tienen stock suficiente.</p>
-        )}
-      </div>
-
-      {/* 4. AUDITORIA */}
-      <div className="auditoria-container" style={{ marginTop: '30px' }}>
-        <h3>Historial de Movimientos</h3>
-        {resumen.auditoria && resumen.auditoria.length > 0 ? (
-          <div className="table-responsive">
-            <table className="table-compras" style={{ width: '100%', textAlign: 'left' }}>
-              <thead>
-                <tr>
-                  <th>Fecha y Hora</th>
-                  <th>Usuario</th>
-                  <th>Acción</th>
-                  <th>Entidad</th>
-                  <th>Detalles</th>
-                </tr>
-              </thead>
-              <tbody>
-                {resumen.auditoria.map((registro) => {
-                  const fechaFormat = parseFecha(registro.fechaHora).toLocaleString();
-                  return (
-                    <tr key={registro.id}>
-                      <td>{fechaFormat}</td>
-                      <td>{registro.usuario}</td>
-                      <td>
-                        <span className={`badge ${getBadgeClass(registro.accion)}`} style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                          {registro.accion}
-                        </span>
-                      </td>
-                      <td>{registro.entidad} (ID: {registro.entidadId})</td>
-                      <td>{registro.detalles}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="texto-vacio">No hay registros de auditoría aún.</p>
-        )}
-      </div>
-
-      {/* 5. NOTAS */}
-      <div className="notas-container" style={{ marginTop: '30px' }}>
-        <h3>Muro de Anotaciones</h3>
-        <div className="nota-input">
-          <input
-            type="text"
-            value={nota}
-            onChange={(e) => setNota(e.target.value)}
-            placeholder="Escribir un mensaje para el equipo..."
-            onKeyDown={(e) => e.key === 'Enter' && agregarNota()}
-          />
-          <button className="btn-primario" onClick={agregarNota}>Publicar</button>
+      {/* 4. LISTAS (3 COLUMNAS) */}
+      <div className="listas-grid">
+        {/* TOP PRODUCTOS */}
+        <div className="card list-card">
+          <div className="card-header"><TrendingUp size={20} /> <h3>Top Ventas (Mes)</h3></div>
+          {resumen.topProductos && resumen.topProductos.length > 0 ? (
+            <ul className="lista-simple">
+              {resumen.topProductos.map((p, i) => (
+                <li key={i}>
+                  <div className="producto-top-info">
+                    <strong>{p.nombre}</strong>
+                    <span className="producto-top-cant">{p.cantidad} un.</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="texto-vacio">Sin registros este mes.</p>
+          )}
         </div>
-        <ul className="lista-notas">
-          {notas.map((n) => {
-            const fechaFormato = new Date(n.fechaCreacion).toLocaleDateString();
-            return (
-              <li key={n.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <small style={{ color: '#64748b', fontWeight: 'bold' }}>{n.usuario} • {fechaFormato}</small>
-                  <button className="btn-eliminar-nota" onClick={() => eliminarNota(n.id)}>Eliminar</button>
+
+        {/* BAJO STOCK */}
+        <div className="card list-card">
+          <div className="card-header"><AlertTriangle size={20} className="text-orange" /> <h3>Bajo Stock</h3></div>
+          {negocio?.umbralStock === null ? (
+            <p className="texto-vacio">No hay umbral configurado.</p>
+          ) : resumen.bajoStock && resumen.bajoStock.length > 0 ? (
+            <ul className="lista-simple">
+              {resumen.bajoStock.map((p) => (
+                <li key={p.id} className="stock-alert-item">
+                  <div className="stock-info">
+                    <strong>{p.nombre}</strong>
+                    <small>{p.marca}</small>
+                  </div>
+                  <span className="stock-badge">{p.cantidadStock} en stock</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="empty-state-success">
+              <CheckCircle size={32} />
+              <p>Inventario saludable</p>
+            </div>
+          )}
+        </div>
+
+        {/* MURO DE NOTAS */}
+        <div className="card list-card">
+          <div className="card-header"><MessageSquare size={20} /> <h3>Muro de Equipo</h3></div>
+          <div className="nota-input compact">
+            <input
+              type="text"
+              value={nota}
+              onChange={(e) => setNota(e.target.value)}
+              placeholder="Escribir mensaje..."
+              onKeyDown={(e) => e.key === 'Enter' && agregarNota()}
+            />
+            <button className="btn-primario" onClick={agregarNota}>Enviar</button>
+          </div>
+          <ul className="lista-notas compact-notas">
+            {notas.slice(0, 4).map((n) => (
+              <li key={n.id}>
+                <div className="nota-header">
+                  <small><strong>{n.usuario}</strong></small>
+                  <button className="btn-eliminar-nota" onClick={() => eliminarNota(n.id)}>✕</button>
                 </div>
                 <span>{n.contenido}</span>
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+        </div>
       </div>
 
-      {/* 6. NEGOCIO INFO Y MODAL */}
-      {negocio && (
-        <div className="negocio-info" style={{ marginTop: '30px' }}>
-          <div className="negocio-header">
-            <h3>{negocio.nombre}</h3>
-            <button className="btn-secundario" onClick={() => setMostrarModal(true)}>
-              Editar Información
+      {/* 5. AUDITORÍA Y AJUSTES */}
+      <div className="bottom-grid">
+        <div className="card auditoria-card">
+          <div className="card-header"><ShieldAlert size={20} /> <h3>Auditoría Reciente</h3></div>
+          {resumen.auditoria && resumen.auditoria.length > 0 ? (
+            <div className="table-responsive">
+              <table className="table-compras clean-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Acción</th>
+                    <th>Detalles</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {resumen.auditoria.slice(0, 5).map((registro) => (
+                    <tr key={registro.id}>
+                      <td className="text-muted">{parseFecha(registro.fechaHora).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</td>
+                      <td>{registro.usuario}</td>
+                      <td><span className={`badge ${getBadgeClass(registro.accion)}`}>{registro.accion}</span></td>
+                      <td className="text-muted">{registro.detalles}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="texto-vacio">No hay registros de auditoría.</p>
+          )}
+        </div>
+
+        {negocio && (
+          <div className="card negocio-card">
+            <div className="card-header"><Store size={20} /> <h3>Mi Negocio</h3></div>
+            <div className="negocio-detalles-clean">
+              <div className="detalle-row"><span>Nombre:</span> <strong>{negocio.nombre}</strong></div>
+              <div className="detalle-row"><span>Rubro:</span> <strong>{negocio.rubro}</strong></div>
+              <div className="detalle-row"><span>Ubicación:</span> <strong>{negocio.ubicacion}</strong></div>
+              <div className="detalle-row"><span>Alerta Stock:</span> <strong>{negocio.umbralStock ?? "Inactivo"}</strong></div>
+            </div>
+            <button className="btn-secundario w-100 mt-15" onClick={() => setMostrarModal(true)}>
+              <Settings size={16} /> Configurar Parámetros
             </button>
           </div>
-          <div className="negocio-detalles">
-            <p><strong>Rubro:</strong> {negocio.rubro}</p>
-            <p><strong>Ubicación:</strong> {negocio.ubicacion}</p>
-            <p><strong>Umbral de Stock:</strong> {negocio.umbralStock ?? "No configurado"}</p>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* MODAL EDITAR NEGOCIO */}
+      {/* MODAL EDITAR NEGOCIO (Igual que antes) */}
       {mostrarModal && (
         <div className="modal-overlay">
           <div className="modal-content modal-negocio">
-            <div className="modal-header">
-              <h3>Editar Información del Negocio</h3>
-            </div>
-            
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const datos = Object.fromEntries(new FormData(e.target));
-                guardarCambiosNegocio(datos);
-              }}
-            >
+            <div className="modal-header"><h3>Configuración del Negocio</h3></div>
+            <form onSubmit={(e) => { e.preventDefault(); guardarCambiosNegocio(Object.fromEntries(new FormData(e.target))); }}>
               <div className="modal-body">
                 {["nombre", "rubro", "ubicacion", "umbralStock"].map((campo) => (
                   <div key={campo} className="form-group">
-                    <label>
-                      {campo === "umbralStock" ? "Umbral de Stock Bajo" : campo.charAt(0).toUpperCase() + campo.slice(1)}
-                    </label>
-                    <input
-                      name={campo}
-                      type={campo === "umbralStock" ? "number" : "text"}
-                      defaultValue={negocio[campo] ?? ""}
-                      placeholder={campo === "umbralStock" ? "Ej: 10" : ""}
-                    />
+                    <label>{campo === "umbralStock" ? "Notificar cuando el stock baje de:" : campo.charAt(0).toUpperCase() + campo.slice(1)}</label>
+                    <input name={campo} type={campo === "umbralStock" ? "number" : "text"} defaultValue={negocio[campo] ?? ""} placeholder={campo === "umbralStock" ? "Ej: 10" : ""} />
                   </div>
                 ))}
-
-                <hr style={{ margin: '20px 0', borderColor: '#eee' }} />
-                <h4 style={{ marginBottom: '15px' }}>Configuración del Ticket PDF</h4>
-
+                <hr style={{ margin: '15px 0', borderColor: '#e2e8f0' }} />
+                <h4 style={{ marginBottom: '15px', color: '#0f172a' }}>Comprobantes de Venta</h4>
                 <div className="form-group">
                   <label>Mensaje de Cabecera</label>
-                  <input
-                    name="ticketCabecera"
-                    type="text"
-                    defaultValue={negocio.ticketCabecera ?? "¡Gracias por su compra!"}
-                    placeholder="Ej: Ferretería El Sol - Tel: 555-1234"
-                  />
+                  <input name="ticketCabecera" type="text" defaultValue={negocio.ticketCabecera ?? "¡Gracias por su compra!"} placeholder="Ej: Ferretería El Sol" />
                 </div>
-                
                 <div className="form-group">
                   <label>Mensaje de Pie de página</label>
-                  <input
-                    name="ticketPie"
-                    type="text"
-                    defaultValue={negocio.ticketPie ?? "Vuelva pronto"}
-                    placeholder="Ej: ¡Los esperamos la próxima!"
-                  />
+                  <input name="ticketPie" type="text" defaultValue={negocio.ticketPie ?? "Vuelva pronto"} placeholder="Ej: ¡Los esperamos la próxima!" />
                 </div>
               </div>
-
               <div className="modal-footer">
-                <button type="button" className="btn-cancelar" onClick={() => setMostrarModal(false)}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn-primario">
-                  Guardar Cambios
-                </button>
+                <button type="button" className="btn-cancelar" onClick={() => setMostrarModal(false)}>Cancelar</button>
+                <button type="submit" className="btn-primario">Guardar Cambios</button>
               </div>
             </form>
           </div>

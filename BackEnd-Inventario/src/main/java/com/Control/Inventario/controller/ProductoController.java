@@ -4,6 +4,8 @@ import com.Control.Inventario.dto.PageResponse;
 import com.Control.Inventario.dto.ProductoRequest;
 import com.Control.Inventario.dto.ProductoResponseDTO;
 import com.Control.Inventario.dto.ImportacionExcelResponseDTO;
+import com.Control.Inventario.entity.Producto;
+import com.Control.Inventario.repository.ProductoRepository;
 import com.Control.Inventario.service.ProductoService;
 import com.Control.Inventario.service.ImportacionExcelService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/productos")
 @CrossOrigin(origins = "*")
@@ -22,6 +26,7 @@ public class ProductoController {
 
     private final ProductoService productoService;
     private final ImportacionExcelService importacionExcelService;
+    private final ProductoRepository productoRepository; // <-- 1. INYECTAMOS EL REPOSITORIO AQUÍ
 
     // --- ENDPOINTS EXISTENTES ---
 
@@ -53,12 +58,11 @@ public class ProductoController {
         );
     }
 
-    // --- NUEVO ENDPOINT PARA EL ESCÁNER ---
+    // --- ENDPOINT PARA EL ESCÁNER ---
 
     @GetMapping("/codigo-barras/{codigo}")
     @PreAuthorize("@permisos.puedeGestionarInventario(authentication.name) or @permisos.puedeVender(authentication.name)")
     public ResponseEntity<ProductoResponseDTO> buscarPorCodigoBarras(@PathVariable String codigo) {
-        // Delegamos al servicio para que busque por código y filtre por el negocio del usuario actual
         ProductoResponseDTO producto = productoService.buscarPorCodigoBarras(codigo);
         return ResponseEntity.ok(producto);
     }
@@ -102,6 +106,32 @@ public class ProductoController {
             return ResponseEntity.ok(resultado);
         } else {
             return ResponseEntity.badRequest().body(resultado);
+        }
+    }
+
+
+    // --- NUEVO ENDPOINT ALTA RÁPIDA (Corregido) ---
+    @PostMapping("/rapido")
+    public ResponseEntity<?> crearProductoRapido(@RequestBody Map<String, Object> payload) {
+        try {
+            Producto nuevoProducto = new Producto();
+
+            nuevoProducto.setCodigoBarras(payload.get("codigo_barras").toString());
+            nuevoProducto.setDescripcion(payload.get("descripcion").toString());
+            nuevoProducto.setPrecio(Double.parseDouble(payload.get("precio").toString()));
+
+            // 2. CORREGIDO: Usamos Double.valueOf en lugar de Integer.parseInt
+            nuevoProducto.setCantidadStock(Double.valueOf(payload.get("cantidad_stock").toString()));
+
+            nuevoProducto.setMarca("Sin Marca");
+            nuevoProducto.setActivo(true);
+
+            // 3. CORREGIDO: Usamos la instancia con minúscula (productoRepository)
+            Producto productoGuardado = productoRepository.save(nuevoProducto);
+
+            return ResponseEntity.ok(productoGuardado);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al crear producto rápido: " + e.getMessage());
         }
     }
 }

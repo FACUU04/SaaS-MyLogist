@@ -1,4 +1,4 @@
-/* VENTASMODULE.CSS */
+/* VENTASMODULE.CSS  */
 
 * {
   box-sizing: border-box;
@@ -13,6 +13,11 @@
 
 .ventas-header {
   margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .ventas-header h2 {
@@ -20,6 +25,55 @@
   color: #0f172a;
   font-size: 1.75rem;
   font-weight: 700;
+}
+
+.turno-info {
+  color: #16a34a;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+/* ---------------- Escáner de Código de Barras ---------------- */
+.escaner-container {
+  background-color: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px dashed #cbd5e1;
+  margin-bottom: 1.5rem;
+}
+
+.escaner-container label {
+  display: block;
+  color: #0f172a;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  font-size: 1.05rem;
+}
+
+.escaner-input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  font-size: 1.25rem;
+  border-radius: 0.5rem;
+  border: 2px solid #3b82f6;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
+
+.escaner-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+}
+
+.escaner-hint {
+  display: block;
+  color: #64748b;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
 }
 
 /* ---------------- Formulario de Nueva Venta ---------------- */
@@ -39,6 +93,10 @@
 
 .form-row-ventas:last-child {
   margin-bottom: 0;
+}
+
+.buscador-producto-row {
+  align-items: flex-end;
 }
 
 .input-group-ventas {
@@ -165,7 +223,7 @@
 }
 
 .ticket-table {
-  min-width: 400px; /* La del ticket puede ser más angosta */
+  min-width: 400px;
 }
 
 .ventas-table thead {
@@ -201,135 +259,68 @@
   font-style: italic;
 }
 
-.celda-importe {
-  font-weight: 700;
-  color: #0f172a !important;
+/* ---------------- Muro de Comunicaciones (NUEVO) ---------------- */
+.notas-container {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.texto-muted {
-  color: #94a3b8;
-  font-style: italic;
-}
-
-/* Detalles de lista en la tabla de registros */
-.lista-detalles-mini {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.lista-detalles-mini li {
-  font-size: 0.85rem;
-  color: #475569;
-}
-
-.cant-mini {
-  background-color: #e2e8f0;
-  color: #334155;
-  padding: 0.1rem 0.3rem;
-  border-radius: 0.2rem;
-  font-weight: 600;
-  margin-right: 0.5rem;
-  font-size: 0.75rem;
-}
-
-/* ---------------- Modal del Ticket Final ---------------- */
-.modal-ticket {
-  max-width: 450px !important;
-}
-
-.ticket-body {
-  background-color: #f8fafc;
-  border-radius: 0.5rem;
-  border: 1px dashed #cbd5e1;
-}
-
-.ticket-cliente-info {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-  color: #475569;
-}
-
-.ticket-lista-final {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 1rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.ticket-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.ticket-item-desc {
-  display: flex;
-  flex-direction: column;
-  color: #1e293b;
-  font-weight: 500;
-}
-
-.ticket-item-desc small {
-  color: #64748b;
-  font-weight: 400;
-}
-
-.ticket-item-subtotal {
+.notas-container h3 {
+  margin-top: 0;
   color: #0f172a;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
 }
 
-.ticket-total-final {
+.nota-input {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 1rem;
-  border-top: 2px solid #e2e8f0;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.ticket-total-final span {
-  font-weight: 600;
-  color: #475569;
-  text-transform: uppercase;
-}
-
-.ticket-total-final h2 {
-  margin: 0;
-  color: #f97316;
-  font-size: 1.75rem;
-}
-
-.alerta-suave {
-  margin-top: 1.5rem;
-  padding: 0.75rem;
-  background-color: #fff7ed;
-  border: 1px solid #fed7aa;
-  color: #c2410c;
+.nota-input input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e1;
   border-radius: 0.5rem;
-  font-size: 0.85rem;
-  text-align: center;
+  font-size: 0.95rem;
 }
 
-/* ---------------- Responsive ---------------- */
-@media screen and (max-width: 768px) {
-  .form-row-ventas {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .buscador-producto-row {
-    flex-direction: column;
-  }
-  
-  .ticket-footer button {
-    width: 100%;
-  }
+.nota-input input:focus {
+  outline: none;
+  border-color: #2563eb;
 }
+
+.lista-notas {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lista-notas li {
+  background-color: #f8fafc;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border-left: 4px solid #f97316;
+}
+
+.btn-eliminar-nota {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0;
+}
+
+.btn-eliminar-nota:hover {
+  text-decoration: underline;
+}
+
