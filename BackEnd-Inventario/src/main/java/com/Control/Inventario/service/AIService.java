@@ -16,10 +16,10 @@ public class AIService {
 
     private static final Logger logger = LoggerFactory.getLogger(AIService.class);
 
-    @Value("${gemini.api.key}")
+    @Value("${groq.api.key}")
     private String apiKey;
 
-    @Value("${gemini.api.url}")
+    @Value("${groq.api.url}")
     private String apiUrl;
 
     private final RestTemplate restTemplate;
@@ -28,50 +28,55 @@ public class AIService {
         this.restTemplate = new RestTemplate();
     }
 
-    /**
-     * @param datosCrudos Un texto simple armado con los totales. Ej: "Ventas: $50K, Más vendido: X..."
-     * @return El resumen redactado por la IA.
-     */
     public String generarResumenGerencial(String datosCrudos) {
-        String urlConKey = apiUrl + "?key=" + apiKey;
+        String promptUsuario = "Analiza los siguientes datos del inventario y genera un reporte estructurado.\n" +
+                "Obligatorio usar este formato (sin saludos ni introducciones largas):\n" +
+                "### 🚨 Stock Crítico\n" +
+                "- (Lista máximo los 3 más urgentes)\n\n" +
+                "### ⭐ Productos Estrella\n" +
+                "- (Destaca 2 o 3 productos con mejor rendimiento)\n\n" +
+                "### 💡 Sugerencia\n" +
+                "- (Una recomendación breve de 1 línea)\n\n" +
+                "Datos: " + datosCrudos;
 
-        // 1. Armamos el "Prompt" (Las instrucciones para la IA)
-        String prompt = "Actúa como un asesor financiero experto para comercios minoristas. " +
-                "Te daré un resumen de los datos de inventario y ventas de esta semana. " +
-                "Escribe un breve mensaje de máximo 3 párrafos cortos (puedes usar emojis y viñetas) " +
-                "destacando: 1) Cómo estuvieron las ventas, 2) Qué producto es el estrella, " +
-                "y 3) Una advertencia sobre productos con bajo stock o sin movimiento. " +
-                "Háblale directamente al dueño de forma amigable y profesional. " +
-                "Datos de esta semana: " + datosCrudos;
+        return procesarPeticionGroq(promptUsuario);
+    }
 
-        // 2. Construimos el JSON exacto que pide la API de Gemini
+    public String consultarAsistente(String prompt) {
+        return procesarPeticionGroq(prompt);
+    }
+
+    private String procesarPeticionGroq(String promptUsuario) {
+        // Creamos el rol de "Sistema" para forzar la identidad y el comportamiento
+        String systemPrompt = "Eres el 'Asistente de IA de MyLogist'. " +
+                "Regla 1: NUNCA menciones a Gemini, OpenAI, Groq o qué modelo de IA eres. " +
+                "Regla 2: Tus respuestas deben ser EXTREMADAMENTE cortas, prolijas y directas al grano. " +
+                "Regla 3: Usa siempre viñetas y texto en negrita para facilitar la lectura visual.";
+
         Map<String, Object> requestBody = Map.of(
-                "contents", List.of(
-                        Map.of("parts", List.of(
-                                Map.of("text", prompt)
-                        ))
+                "model", "llama-3.1-8b-instant",
+                "messages", List.of(
+                        Map.of("role", "system", "content", systemPrompt),
+                        Map.of("role", "user", "content", promptUsuario)
                 )
         );
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
 
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
 
         try {
-            // 3. Enviamos la petición a Google
-            Map<String, Object> response = restTemplate.postForObject(urlConKey, requestEntity, Map.class);
+            Map<String, Object> response = restTemplate.postForObject(apiUrl, requestEntity, Map.class);
+            List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+            Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
 
-            // 4. Navegamos el JSON de respuesta para extraer solo el texto generado
-            List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
-            Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
-            List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-
-            return (String) parts.get(0).get("text");
+            return (String) message.get("content");
 
         } catch (Exception e) {
-            logger.error("Error al comunicarse con Gemini API: {}", e.getMessage());
-            return "Aquí tienes el reporte de esta semana. (Nota: El análisis inteligente no está disponible en este momento).";
+            logger.error("Error al comunicarse con la API de Groq: {}", e.getMessage());
+            return "Lo siento, el Asistente IA está temporalmente fuera de servicio. Intenta nuevamente más tarde.";
         }
     }
 }

@@ -79,6 +79,7 @@ const HistorialVentas = () => {
   const [filtroCliente, setFiltroCliente] = useState(null);
   const [expandida, setExpandida] = useState(null);
   const [cargando, setCargando] = useState(false);
+  const [mostrarDetalleLista, setMostrarDetalleLista] = useState(false); // NUEVO ESTADO
 
   // ESTADOS DE IMPRESIÓN RE-IMPRESIÓN
   const [ventaParaImprimir, setVentaParaImprimir] = useState(null);
@@ -149,10 +150,9 @@ const HistorialVentas = () => {
   });
 
   const imprimirComprobante = (venta, e) => {
-    e.stopPropagation(); // Evita que se cierre el acordeón al hacer clic
+    e.stopPropagation();
     setVentaParaImprimir(venta);
     
-    // Pequeño retardo para asegurar que React renderice el componente oculto antes de capturarlo
     setTimeout(() => {
       triggerPrint();
     }, 150);
@@ -213,66 +213,77 @@ const HistorialVentas = () => {
           <strong>${totalFacturadoMes.toLocaleString("es-AR")}</strong>
       </div>
 
-      {/* LISTADO DE VENTAS PAGINADO */}
-      <div className="lista-ventas-container">
-        <h4 className="seccion-titulo">Detalle de Operaciones ({totalElementos})</h4>
-        {cargando ? (
-          <div className="loader">Cargando operaciones...</div>
-        ) : (
+      {/* LISTADO DE VENTAS PAGINADO (CON BOTÓN DE OCULTAR) */}
+      <div className="lista-ventas-container" style={{ marginTop: '30px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+          <h4 className="seccion-titulo" style={{ margin: 0 }}>Detalle de Operaciones ({totalElementos})</h4>
+          <button 
+            className="btn-secundario" 
+            onClick={() => setMostrarDetalleLista(!mostrarDetalleLista)}
+            style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+          >
+            {mostrarDetalleLista ? "Ocultar Registros" : "Ver Registros"}
+          </button>
+        </div>
+
+        {mostrarDetalleLista && (
           <>
-            <ul className="lista-ventas">
-              {ventas.length === 0 ? (
-                <li className="sin-ventas">No hay registros para este periodo.</li>
-              ) : (
-                ventas.map((v) => (
-                  <li key={v.id} className="item-venta">
-                    <div className="venta-cabecera" onClick={() => setExpandida(expandida === v.id ? null : v.id)}>
-                      <div className="venta-info-principal">
-                        <span className="venta-numero">#{v.id}</span>
-                        <span className="venta-cliente">{getNombreCliente(v.clienteId)}</span>
-                      </div>
-                      <div className="venta-info-secundaria">
-                        <span className="venta-importe">${Number(v.importeTotal || 0).toLocaleString("es-AR")}</span>
-                        <span className="venta-toggle">{expandida === v.id ? "▲" : "▼"}</span>
-                      </div>
-                    </div>
-                    {expandida === v.id && (
-                      <div className="venta-detalles-desplegados">
-                        <ul className="detalle-venta-lista">
-                          {(v.detalles || []).map((d, i) => (
-                            <li key={i} className="detalle-fila">
-                              <span>{d.descripcionProducto || `Producto #${d.idProducto}`}</span>
-                              <span>x{d.cantidad}</span>
-                              <span>${Number(d.importe || 0).toLocaleString("es-AR")}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        
-                        {/* NUEVO: Botón de Reimpresión */}
-                        <div style={{ marginTop: "15px", textAlign: "right", borderTop: "1px solid #e2e8f0", paddingTop: "10px" }}>
-                          <button 
-                            className="btn-secundario" 
-                            onClick={(e) => imprimirComprobante(v, e)}
-                            style={{ fontSize: "0.85rem", padding: "6px 12px" }}
-                          >
-                            Imprimir Comprobante
-                          </button>
+            {cargando ? (
+              <div className="loader">Cargando operaciones...</div>
+            ) : (
+              <>
+                <ul className="lista-ventas">
+                  {ventas.length === 0 ? (
+                    <li className="sin-ventas">No hay registros para este periodo.</li>
+                  ) : (
+                    ventas.map((v) => (
+                      <li key={v.id} className="item-venta">
+                        <div className="venta-cabecera" onClick={() => setExpandida(expandida === v.id ? null : v.id)}>
+                          <div className="venta-info-principal">
+                            <span className="venta-numero">#{v.id}</span>
+                            <span className="venta-cliente">{getNombreCliente(v.clienteId)}</span>
+                          </div>
+                          <div className="venta-info-secundaria">
+                            <span className="venta-importe">${Number(v.importeTotal || 0).toLocaleString("es-AR")}</span>
+                            <span className="venta-toggle">{expandida === v.id ? "▲" : "▼"}</span>
+                          </div>
                         </div>
+                        {expandida === v.id && (
+                          <div className="venta-detalles-desplegados">
+                            <ul className="detalle-venta-lista">
+                              {(v.detalles || []).map((d, i) => (
+                                <li key={i} className="detalle-fila">
+                                  <span>{d.descripcionProducto || `Producto #${d.idProducto}`}</span>
+                                  <span>x{d.cantidad}</span>
+                                  <span>${Number(d.importe || 0).toLocaleString("es-AR")}</span>
+                                </li>
+                              ))}
+                            </ul>
+                            
+                            <div style={{ marginTop: "15px", textAlign: "right", borderTop: "1px solid #e2e8f0", paddingTop: "10px" }}>
+                              <button 
+                                className="btn-secundario" 
+                                onClick={(e) => imprimirComprobante(v, e)}
+                                style={{ fontSize: "0.85rem", padding: "6px 12px" }}
+                              >
+                                Imprimir Comprobante
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </li>
+                    ))
+                  )}
+                </ul>
 
-                      </div>
-                    )}
-                  </li>
-                ))
-              )}
-            </ul>
-
-            {/* BOTONES DE PAGINACIÓN */}
-            {totalPaginas > 1 && (
-              <div className="paginacion-controles">
-                <button disabled={paginaActual === 0} onClick={() => setPaginaActual(p => p - 1)}>Anterior</button>
-                <span>Página {paginaActual + 1} de {totalPaginas}</span>
-                <button disabled={paginaActual >= totalPaginas - 1} onClick={() => setPaginaActual(p => p + 1)}>Siguiente</button>
-              </div>
+                {totalPaginas > 1 && (
+                  <div className="paginacion-controles">
+                    <button disabled={paginaActual === 0} onClick={() => setPaginaActual(p => p - 1)}>Anterior</button>
+                    <span>Página {paginaActual + 1} de {totalPaginas}</span>
+                    <button disabled={paginaActual >= totalPaginas - 1} onClick={() => setPaginaActual(p => p + 1)}>Siguiente</button>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

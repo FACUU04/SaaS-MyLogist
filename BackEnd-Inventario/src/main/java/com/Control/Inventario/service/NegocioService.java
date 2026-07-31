@@ -31,18 +31,33 @@ public class NegocioService {
         negocio.setUbicacionLocal(request.getUbicacion());
         negocio.setUmbralStock(request.getUmbralStock());
 
-        // 🔥 NUEVOS CAMPOS DEL TICKET
+        // Campos del ticket
         negocio.setTicketCabecera(request.getTicketCabecera());
         negocio.setTicketPie(request.getTicketPie());
 
+        // 🔥 NUEVOS CAMPOS DE CONFIGURACIÓN IA
+        // Si request trae null (por ejemplo si no se tocaron), mantenemos lo que ya estaba o un default
+        if (request.getReporteIaActivo() != null) {
+            negocio.setReporteIaActivo(request.getReporteIaActivo());
+        }
+        if (request.getReporteIaFrecuencia() != null) {
+            negocio.setReporteIaFrecuencia(request.getReporteIaFrecuencia());
+        }
+        if (request.getReporteIaCanal() != null) {
+            negocio.setReporteIaCanal(request.getReporteIaCanal());
+        }
+        if (request.getReporteIaDestino() != null) {
+            negocio.setReporteIaDestino(request.getReporteIaDestino());
+        }
+
         Negocio negocioGuardado = negocioRepository.save(negocio);
 
-        // 🔥 AUDITORIA: Registramos que el admin cambió la configuración
+        // AUDITORIA: Registramos que el admin cambió la configuración
         auditoriaService.registrarAccion(
                 "ACTUALIZACION",
                 "Negocio",
                 String.valueOf(negocioGuardado.getId()),
-                "Se actualizó la configuración del negocio/ticket"
+                "Se actualizó la configuración general del negocio (incluyendo IA)"
         );
 
         return mapToDto(negocioGuardado);
@@ -75,9 +90,11 @@ public class NegocioService {
                 n.getUbicacionLocal(),
                 n.getUmbralStock(),
                 n.getTicketCabecera(),
-                n.getTicketPie()
+                n.getTicketPie(),
+                n.getReporteIaActivo(),
+                n.getReporteIaFrecuencia(),
+                n.getReporteIaCanal(),
+                n.getReporteIaDestino()
         );
     }
 }
-
-

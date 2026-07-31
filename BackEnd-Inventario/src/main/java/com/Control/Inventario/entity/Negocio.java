@@ -63,6 +63,23 @@ public class Negocio {
     @Column(name = "ticket_pie")
     private String ticketPie;
 
+
+    // --- NUEVOS CAMPOS DE CONFIGURACIÓN IA ---
+    @Column(name = "reporte_ia_activo")
+    @Builder.Default
+    private Boolean reporteIaActivo = false;
+
+    @Column(name = "reporte_ia_frecuencia", length = 20)
+    @Builder.Default
+    private String reporteIaFrecuencia = "SEMANAL";
+
+    @Column(name = "reporte_ia_canal", length = 20)
+    @Builder.Default
+    private String reporteIaCanal = "EMAIL";
+
+    @Column(name = "reporte_ia_destino", length = 100)
+    private String reporteIaDestino;
+
     @Column(nullable = false)
     @Builder.Default
     private boolean activo = true;

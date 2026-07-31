@@ -4,12 +4,13 @@ import { getTurnoActivo, abrirTurno, cerrarTurno } from "../components/utils/api
 import Select from "react-select";
 import { ToastContainer, toast } from "react-toastify";
 import { useReactToPrint } from "react-to-print"; 
-import { Barcode, AlertCircle, ShoppingCart, Trash2, CheckCircle2, MessageSquare } from "lucide-react";
+import { Barcode, AlertCircle, ShoppingCart, Trash2, CheckCircle2, MessageSquare, Camera } from "lucide-react";
+import { Html5QrcodeScanner } from "html5-qrcode";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/modules/VentasModule.css";
 import "../styles/ModalTurno.css"; 
 
-// COMPONENTE DEL TICKET (Diseño profesional para impresión)
+// COMPONENTE DEL TICKET
 const TicketToPrint = React.forwardRef(({ ventaFinal, productos, negocioConfig, clienteNombre }, ref) => {
   const total = ventaFinal.detalles.reduce((acc, d) => {
     const p = productos.find(prod => (prod.id_producto || prod.id) === d.productoId);
@@ -85,6 +86,7 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
   const [ventaRegistrada, setVentaRegistrada] = useState(null); 
   
   const [codigoEscaneado, setCodigoEscaneado] = useState("");
+  const [showCamera, setShowCamera] = useState(false);
   const scannerRef = useRef(null);
 
   // ESTADOS PARA ALTA RÁPIDA (Producto no encontrado)
@@ -94,18 +96,36 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
 
   const componentRef = useRef();
 
-  // CARGA DE DATOS
   useEffect(() => {
     cargarTurno();
     cargarDatosSecundarios();
   }, []);
 
-  // Mantener el foco en el escáner
   useEffect(() => {
-    if (turnoActivo && scannerRef.current && !showAltaRapidaModal && !showConfirmModal) {
+    if (turnoActivo && scannerRef.current && !showAltaRapidaModal && !showConfirmModal && !showCerrarModal && !showCamera) {
       scannerRef.current.focus();
     }
-  }, [turnoActivo, showAltaRapidaModal, showConfirmModal]);
+  }, [turnoActivo, showAltaRapidaModal, showConfirmModal, showCerrarModal, showCamera]);
+
+  // CÁMARA ESCÁNER EFECTO
+  useEffect(() => {
+    let scanner = null;
+    if (showCamera) {
+      scanner = new Html5QrcodeScanner("reader", { qrbox: { width: 250, height: 200 }, fps: 5 }, false);
+      scanner.render((textoEscaneado) => {
+        scanner.clear();
+        setShowCamera(false);
+        procesarCodigoEscaneado(textoEscaneado);
+      }, (err) => {
+        // Errores de lectura frame a frame, se ignoran
+      });
+    }
+    return () => {
+      if (scanner) {
+        scanner.clear().catch(e => console.error(e));
+      }
+    };
+  }, [showCamera, productos]);
 
   const cargarTurno = async () => {
     try {
@@ -129,7 +149,6 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
     }
   };
 
-  // LÓGICA DE MURO DE ANOTACIONES
   const agregarNota = async () => {
     if (nota.trim()) {
       try {
@@ -153,7 +172,6 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
     }
   };
 
-  // LÓGICA DE CAJA
   const handleAbrirCaja = async (e) => {
     e.preventDefault();
     try {
@@ -181,40 +199,43 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
     }
   };
 
-  // --- LÓGICA DEL ESCÁNER ULTRARRÁPIDO ---
-  const manejarEscaneo = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault(); 
-      if (!codigoEscaneado.trim()) return;
+  // LÓGICA CENTRALIZADA DE CÓDIGOS DE BARRAS
+  const procesarCodigoEscaneado = (codigoStr) => {
+    if (!codigoStr.trim()) return;
+    const codigoLimpio = codigoStr.trim();
+    const productoEncontrado = productos.find(p => p.codigo_barras === codigoLimpio || p.codigo === codigoLimpio);
 
-      const codigoLimpio = codigoEscaneado.trim();
-      const productoEncontrado = productos.find(p => p.codigo_barras === codigoLimpio || p.codigo === codigoLimpio);
-
-      if (productoEncontrado) {
-        const idProd = productoEncontrado.id_producto || productoEncontrado.id;
-        const existente = venta.detalles.find((d) => d.productoId === idProd);
-        
+    if (productoEncontrado) {
+      const idProd = productoEncontrado.id_producto || productoEncontrado.id;
+      
+      setVenta(prevVenta => {
+        const existente = prevVenta.detalles.find((d) => d.productoId === idProd);
         let nuevosDetalles;
         if (existente) {
-          nuevosDetalles = venta.detalles.map((d) =>
+          nuevosDetalles = prevVenta.detalles.map((d) =>
             d.productoId === idProd ? { ...d, cantidad: d.cantidad + 1 } : d
           );
         } else {
-          nuevosDetalles = [...venta.detalles, { productoId: idProd, cantidad: 1 }];
+          nuevosDetalles = [...prevVenta.detalles, { productoId: idProd, cantidad: 1 }];
         }
-        
-        setVenta({ ...venta, detalles: nuevosDetalles });
-        toast.success(`Agregado: ${productoEncontrado.descripcion}`, { autoClose: 500, hideProgressBar: true });
-        setCodigoEscaneado("");
-      } else {
-        setCodigoDesconocido(codigoLimpio);
-        setShowAltaRapidaModal(true);
-        setCodigoEscaneado("");
-      }
+        return { ...prevVenta, detalles: nuevosDetalles };
+      });
+
+      toast.success(`Agregado: ${productoEncontrado.descripcion}`, { autoClose: 500, hideProgressBar: true });
+    } else {
+      setCodigoDesconocido(codigoLimpio);
+      setShowAltaRapidaModal(true);
     }
   };
 
-  // LÓGICA DE VENTA MANUAL MEJORADA
+  const manejarEscaneoTeclado = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); 
+      procesarCodigoEscaneado(codigoEscaneado);
+      setCodigoEscaneado(""); // Limpiar input después de leer
+    }
+  };
+
   const opcionesClientes = clientes.map((c) => ({
     value: c.id,
     label: `${c.nombre} ${c.apellido}`,
@@ -237,17 +258,19 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
       return toast.error("Stock insuficiente");
     }
 
-    const existente = venta.detalles.find((d) => d.productoId === productoSeleccionado);
-    let nuevosDetalles;
-    if (existente) {
-      nuevosDetalles = venta.detalles.map((d) =>
-        d.productoId === productoSeleccionado ? { ...d, cantidad: d.cantidad + cantidadNumerica } : d
-      );
-    } else {
-      nuevosDetalles = [...venta.detalles, { productoId: productoSeleccionado, cantidad: cantidadNumerica }];
-    }
+    setVenta(prev => {
+      const existente = prev.detalles.find((d) => d.productoId === productoSeleccionado);
+      let nuevosDetalles;
+      if (existente) {
+        nuevosDetalles = prev.detalles.map((d) =>
+          d.productoId === productoSeleccionado ? { ...d, cantidad: d.cantidad + cantidadNumerica } : d
+        );
+      } else {
+        nuevosDetalles = [...prev.detalles, { productoId: productoSeleccionado, cantidad: cantidadNumerica }];
+      }
+      return { ...prev, detalles: nuevosDetalles };
+    });
 
-    setVenta({ ...venta, detalles: nuevosDetalles });
     setCantidad("1");
     setProductoSeleccionado(null);
     toast.success("Producto añadido", { autoClose: 500, hideProgressBar: true });
@@ -255,7 +278,6 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
     if (scannerRef.current) scannerRef.current.focus();
   };
 
-  // LÓGICA PARA GUARDAR EL ALTA RÁPIDA
   const manejarAltaRapida = async (e) => {
     e.preventDefault();
     try {
@@ -271,7 +293,7 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
       if(setProductos) setProductos([...productos, productoCreado]);
       
       const idNuevo = productoCreado.id_producto || productoCreado.id;
-      setVenta({ ...venta, detalles: [...venta.detalles, { productoId: idNuevo, cantidad: 1 }] });
+      setVenta(prev => ({ ...prev, detalles: [...prev.detalles, { productoId: idNuevo, cantidad: 1 }] }));
       
       toast.success("Producto creado y agregado al carrito");
       setShowAltaRapidaModal(false);
@@ -313,6 +335,12 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
     onAfterPrint: () => setVentaRegistrada(null), 
   });
 
+  const abrirModalCierre = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowCerrarModal(true);
+  };
+
   if (loadingTurno) return <div className="cargando-modulo">Cargando sistema de facturación...</div>;
 
   // MODAL DE APERTURA (BLOQUEANTE)
@@ -341,7 +369,7 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
   }
 
   return (
-    <div className="ventas-module">
+    <div className="ventas-module" style={{ position: 'relative' }}>
       <ToastContainer position="top-right" autoClose={3000} />
       
       <div style={{ display: "none" }}>
@@ -402,37 +430,57 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
         </div>
       )}
 
-      <div className="ventas-header">
+      {/* HEADER DE VENTAS */}
+      <div className="ventas-header" style={{ position: 'relative', zIndex: 10 }}>
         <div>
           <h2>Módulo de Ventas</h2>
-          <span className="turno-info">
-            Estado: Turno Activo
-          </span>
+          <span className="turno-info">Estado: Turno Activo</span>
         </div>
-        <button onClick={() => setShowCerrarModal(true)} className="btn-peligro">Cerrar Caja</button>
+        <button 
+          onClick={abrirModalCierre} 
+          className="btn-peligro"
+          style={{ position: 'relative', zIndex: 50, cursor: 'pointer' }}
+        >
+          Cerrar Caja
+        </button>
       </div>
 
       <div className="form-panel">
         
-        {/* INPUT DEL ESCÁNER */}
-        <div className="escaner-container">
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Barcode size={20} className="text-slate-700" /> Escáner de Código de Barras
-          </label>
-          <input 
-            className="escaner-input"
-            type="text" 
-            ref={scannerRef}
-            value={codigoEscaneado} 
-            onChange={(e) => setCodigoEscaneado(e.target.value)}
-            onKeyDown={manejarEscaneo}
-            placeholder="Pase el producto por el lector láser..." 
-            autoFocus
-          />
-          <span className="escaner-hint">El cursor debe permanecer en este campo para habilitar la lectura.</span>
+        {/* INPUT DEL ESCÁNER Y CÁMARA */}
+        <div className="escaner-container" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, position: 'relative', minWidth: '250px' }}>
+            <Barcode size={20} className="text-slate-700" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+            <input 
+              className="escaner-input"
+              style={{ paddingLeft: '40px', width: '100%' }}
+              type="text" 
+              ref={scannerRef}
+              value={codigoEscaneado} 
+              onChange={(e) => setCodigoEscaneado(e.target.value)}
+              onKeyDown={manejarEscaneoTeclado}
+              placeholder="Pistola láser o teclado..." 
+            />
+          </div>
+          
+          <button 
+            className="btn-secundario" 
+            onClick={() => setShowCamera(!showCamera)}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}
+            title="Escanear con cámara del celular"
+          >
+            <Camera size={20} /> {showCamera ? "Ocultar Lente" : "Escanear con Cámara"}
+          </button>
         </div>
 
-        <div className="form-row-ventas">
+        {showCamera && (
+          <div className="card" style={{ marginTop: '15px', padding: '10px', border: '2px solid #3b82f6' }}>
+            <p style={{ margin: '0 0 10px 0', fontSize: '0.85rem', color: '#64748b', textAlign: 'center' }}>Apunte la cámara hacia el código de barras</p>
+            <div id="reader" style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}></div>
+          </div>
+        )}
+
+        <div className="form-row-ventas" style={{ marginTop: '15px' }}>
           <div className="input-group-ventas">
             <label>Cliente</label>
             <Select
@@ -517,37 +565,6 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
         </div>
       </div>
 
-      {/* MURO DE MENSAJES */}
-      <div className="notas-container" style={{ marginTop: '30px' }}>
-        <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <MessageSquare size={18} /> Muro de Comunicaciones
-        </h3>
-        <div className="nota-input">
-          <input
-            type="text"
-            value={nota}
-            onChange={(e) => setNota(e.target.value)}
-            placeholder="Escribir un mensaje para el equipo..."
-            onKeyDown={(e) => e.key === 'Enter' && agregarNota()}
-          />
-          <button className="btn-primario" onClick={agregarNota}>Publicar</button>
-        </div>
-        <ul className="lista-notas">
-          {notas.map((n) => {
-            const fechaFormato = new Date(n.fechaCreacion).toLocaleDateString();
-            return (
-              <li key={n.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <small style={{ color: '#64748b', fontWeight: 'bold' }}>{n.usuario} - {fechaFormato}</small>
-                  <button className="btn-eliminar-nota" onClick={() => eliminarNota(n.id)}>Eliminar</button>
-                </div>
-                <span>{n.contenido}</span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-
       {/* MODAL CONFIRMACIÓN VENTA */}
       {showConfirmModal && (
         <div className="modal-overlay">
@@ -601,6 +618,49 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
               <button className="btn-cancelar" onClick={() => setShowConfirmModal(false)}>Regresar</button>
               <button className="btn-primario" onClick={registrarVenta}>Confirmar Operación</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CERRAR CAJA / TURNO - FIJADO Z-INDEX Y FUNCIÓN */}
+      {showCerrarModal && (
+        <div className="modal-overlay" style={{ zIndex: 2147483647 }}>
+          <div className="modal-content modal-caja" style={{ padding: '2rem' }}>
+            <h2 style={{ marginTop: 0, color: '#0f172a' }}>Cierre de Turno</h2>
+            <p style={{ color: '#475569', marginBottom: '1.5rem' }}>Declare el saldo final físico en la caja registradora.</p>
+            
+            <form onSubmit={handleCerrarCaja}>
+              <div className="form-group">
+                <label>Efectivo final en caja:</label>
+                <div className="input-dinero">
+                  <span>$</span>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    required 
+                    value={montoCierre} 
+                    onChange={(e) => setMontoCierre(e.target.value)} 
+                    placeholder="0.00" 
+                  />
+                </div>
+              </div>
+              
+              <div className="form-group" style={{ marginTop: '1rem' }}>
+                <label>Observaciones (Opcional):</label>
+                <textarea 
+                  rows="3"
+                  value={observacionesCierre} 
+                  onChange={(e) => setObservacionesCierre(e.target.value)} 
+                  placeholder="Ej: Faltan $100, retiro de dueño..." 
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', resize: 'vertical' }}
+                />
+              </div>
+              
+              <div className="modal-footer" style={{ marginTop: '2rem', borderTop: 'none', padding: 0, display: 'flex', gap: '1rem' }}>
+                <button type="button" className="btn-cancelar" onClick={() => setShowCerrarModal(false)} style={{ flex: 1, backgroundColor: 'transparent' }}>Cancelar</button>
+                <button type="submit" className="btn-peligro" style={{ flex: 1 }}>Confirmar Cierre</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

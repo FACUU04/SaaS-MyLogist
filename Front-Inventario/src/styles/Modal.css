@@ -154,3 +154,40 @@
   .modal-footer { flex-direction: column-reverse; }
   .modal-footer button { width: 100%; padding: 0.85rem; }
 }
+
+/* --- Checkboxes Premium (Para Configuración IA en Modal) --- */
+.checkbox-label-premium {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.checkbox-label-premium:hover {
+  border-color: #94a3b8;
+  background-color: #f8fafc;
+}
+
+.checkbox-label-premium input[type="checkbox"] {
+  margin-top: 0.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: #0284c7; /* Azul IA */
+  cursor: pointer;
+}
+
+.checkbox-content {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Envoltorio para los iconos dentro de los selects/inputs */
+.input-icon-wrapper {
+  position: relative;
+  width: 100%;
+}

@@ -5,7 +5,8 @@ import HistorialVentas from "../components/UI/HistorialVentas";
 import BalanceGrafico from "../components/UI/BalanceGrafico"; 
 import { 
   Sparkles, Package, Users, Briefcase, BadgeDollarSign, TrendingUp, 
-  AlertTriangle, Activity, Settings, MessageSquare, CheckCircle, Store, ShieldAlert
+  AlertTriangle, Activity, Settings, MessageSquare, CheckCircle, Store, ShieldAlert, X,
+  Bot, Mail, Smartphone, Calendar, Power
 } from "lucide-react";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/Dashboard.css";
@@ -17,6 +18,9 @@ const DashboardView = () => {
   const [resumen, setResumen] = useState(null);
   const [nota, setNota] = useState("");
   const [notas, setNotas] = useState([]);
+
+  // Estado local para manejar el formulario del modal de forma dinámica
+  const [formNegocio, setFormNegocio] = useState({});
 
   useEffect(() => {
     if (mostrarModal) document.body.style.overflow = "hidden";
@@ -33,7 +37,12 @@ const DashboardView = () => {
           ...negocioData,
           umbralStock: negocioData?.umbral_stock ?? null,
           ticketCabecera: negocioData?.ticket_cabecera ?? "",
-          ticketPie: negocioData?.ticket_pie ?? ""            
+          ticketPie: negocioData?.ticket_pie ?? "",
+          // Mapeamos los nuevos campos de la IA (desde snake_case)
+          reporteIaActivo: negocioData?.reporte_ia_activo ?? false,
+          reporteIaFrecuencia: negocioData?.reporte_ia_frecuencia ?? "SEMANAL",
+          reporteIaCanal: negocioData?.reporte_ia_canal ?? "EMAIL",
+          reporteIaDestino: negocioData?.reporte_ia_destino ?? ""
         });
 
         const dataNotas = await getNotas();
@@ -77,31 +86,72 @@ const DashboardView = () => {
     }
   };
 
-  const guardarCambiosNegocio = async (datosActualizados) => {
+  // Función para abrir el modal y cargar los datos actuales al formulario temporal
+  const abrirModal = () => {
+    setFormNegocio({
+      nombre: negocio.nombre || "",
+      rubro: negocio.rubro || "",
+      ubicacion: negocio.ubicacion || "",
+      umbralStock: negocio.umbralStock || "",
+      ticketCabecera: negocio.ticketCabecera || "",
+      ticketPie: negocio.ticketPie || "",
+      reporteIaActivo: negocio.reporteIaActivo || false,
+      reporteIaFrecuencia: negocio.reporteIaFrecuencia || "SEMANAL",
+      reporteIaCanal: negocio.reporteIaCanal || "EMAIL",
+      reporteIaDestino: negocio.reporteIaDestino || ""
+    });
+    setMostrarModal(true);
+  };
+
+  const handleFormChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormNegocio(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const guardarCambiosNegocio = async (e) => {
+    e.preventDefault();
     try {
-      if (!datosActualizados.nombre || !datosActualizados.rubro) {
+      if (!formNegocio.nombre || !formNegocio.rubro) {
         return toast.warn("Completá los campos obligatorios.");
       }
+      
+      // Armamos el payload con los nombres de columnas que espera Java
       const payload = {
         id: negocio.id,
-        nombre: datosActualizados.nombre,
-        rubro: datosActualizados.rubro,
-        ubicacion: datosActualizados.ubicacion,
-        umbral_stock: datosActualizados.umbralStock === "" ? null : Number(datosActualizados.umbralStock),
-        ticket_cabecera: datosActualizados.ticketCabecera, 
-        ticket_pie: datosActualizados.ticketPie            
+        nombre: formNegocio.nombre,
+        rubro: formNegocio.rubro,
+        ubicacion: formNegocio.ubicacion,
+        umbral_stock: formNegocio.umbralStock === "" ? null : Number(formNegocio.umbralStock),
+        ticket_cabecera: formNegocio.ticketCabecera, 
+        ticket_pie: formNegocio.ticketPie,
+        // Agregamos los campos IA
+        reporte_ia_activo: formNegocio.reporteIaActivo,
+        reporte_ia_frecuencia: formNegocio.reporteIaFrecuencia,
+        reporte_ia_canal: formNegocio.reporteIaCanal,
+        reporte_ia_destino: formNegocio.reporteIaDestino
       };
+
       const actualizado = await updateNegocio(payload);
+      
+      // Actualizamos el estado principal del negocio
       setNegocio({
         ...actualizado,
         umbralStock: actualizado?.umbral_stock ?? null,
         ticketCabecera: actualizado?.ticket_cabecera ?? "",
-        ticketPie: actualizado?.ticket_pie ?? ""
+        ticketPie: actualizado?.ticket_pie ?? "",
+        reporteIaActivo: actualizado?.reporte_ia_activo ?? false,
+        reporteIaFrecuencia: actualizado?.reporte_ia_frecuencia ?? "SEMANAL",
+        reporteIaCanal: actualizado?.reporte_ia_canal ?? "EMAIL",
+        reporteIaDestino: actualizado?.reporte_ia_destino ?? ""
       });
+      
       setMostrarModal(false);
-      toast.success("Negocio actualizado correctamente.");
+      toast.success("Configuración actualizada correctamente.");
     } catch (err) {
-      toast.error("Error al actualizar el negocio.");
+      toast.error("Error al actualizar la configuración.");
     }
   };
 
@@ -242,9 +292,11 @@ const DashboardView = () => {
               <li key={n.id}>
                 <div className="nota-header">
                   <small><strong>{n.usuario}</strong></small>
-                  <button className="btn-eliminar-nota" onClick={() => eliminarNota(n.id)}>✕</button>
+                  <button className="btn-eliminar-nota" onClick={() => eliminarNota(n.id)}>
+                    <X size={16} />
+                  </button>
                 </div>
-                <span>{n.contenido}</span>
+                <span className="nota-contenido">{n.contenido}</span>
               </li>
             ))}
           </ul>
@@ -291,39 +343,152 @@ const DashboardView = () => {
               <div className="detalle-row"><span>Rubro:</span> <strong>{negocio.rubro}</strong></div>
               <div className="detalle-row"><span>Ubicación:</span> <strong>{negocio.ubicacion}</strong></div>
               <div className="detalle-row"><span>Alerta Stock:</span> <strong>{negocio.umbralStock ?? "Inactivo"}</strong></div>
+              <div className="detalle-row">
+                <span>IA Automática:</span> 
+                <strong style={{ color: negocio.reporteIaActivo ? '#16a34a' : '#ef4444' }}>
+                  {negocio.reporteIaActivo ? `Activa (${negocio.reporteIaFrecuencia})` : "Apagada"}
+                </strong>
+              </div>
             </div>
-            <button className="btn-secundario w-100 mt-15" onClick={() => setMostrarModal(true)}>
+            <button className="btn-secundario w-100 mt-15" onClick={abrirModal}>
               <Settings size={16} /> Configurar Parámetros
             </button>
           </div>
         )}
       </div>
 
-      {/* MODAL EDITAR NEGOCIO (Igual que antes) */}
+      {/* MODAL CONFIGURACIÓN GENERAL E IA */}
       {mostrarModal && (
         <div className="modal-overlay">
-          <div className="modal-content modal-negocio">
-            <div className="modal-header"><h3>Configuración del Negocio</h3></div>
-            <form onSubmit={(e) => { e.preventDefault(); guardarCambiosNegocio(Object.fromEntries(new FormData(e.target))); }}>
-              <div className="modal-body">
-                {["nombre", "rubro", "ubicacion", "umbralStock"].map((campo) => (
+          <div className="modal-content modal-negocio" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="modal-header" style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 10, paddingBottom: '1rem' }}>
+              <h3>Configuración del Negocio</h3>
+              <button className="btn-eliminar-nota" onClick={() => setMostrarModal(false)}><X size={20} /></button>
+            </div>
+
+            <form onSubmit={guardarCambiosNegocio}>
+              <div className="modal-body" style={{ paddingTop: '1rem' }}>
+                
+                {/* 1. Datos del Negocio */}
+                <h4 style={{ marginBottom: '15px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Store size={18} className="text-slate-500" /> Información General
+                </h4>
+                {["nombre", "rubro", "ubicacion"].map((campo) => (
                   <div key={campo} className="form-group">
-                    <label>{campo === "umbralStock" ? "Notificar cuando el stock baje de:" : campo.charAt(0).toUpperCase() + campo.slice(1)}</label>
-                    <input name={campo} type={campo === "umbralStock" ? "number" : "text"} defaultValue={negocio[campo] ?? ""} placeholder={campo === "umbralStock" ? "Ej: 10" : ""} />
+                    <label>{campo.charAt(0).toUpperCase() + campo.slice(1)}</label>
+                    <input name={campo} type="text" value={formNegocio[campo]} onChange={handleFormChange} required={campo !== "ubicacion"} />
                   </div>
                 ))}
-                <hr style={{ margin: '15px 0', borderColor: '#e2e8f0' }} />
+                
+                <div className="form-group">
+                  <label>Notificar cuando el stock baje de: (Opcional)</label>
+                  <input name="umbralStock" type="number" value={formNegocio.umbralStock} onChange={handleFormChange} placeholder="Ej: 10" />
+                </div>
+
+                <hr style={{ margin: '25px 0', borderColor: '#e2e8f0' }} />
+
+                {/* 2. Tickets */}
                 <h4 style={{ marginBottom: '15px', color: '#0f172a' }}>Comprobantes de Venta</h4>
                 <div className="form-group">
                   <label>Mensaje de Cabecera</label>
-                  <input name="ticketCabecera" type="text" defaultValue={negocio.ticketCabecera ?? "¡Gracias por su compra!"} placeholder="Ej: Ferretería El Sol" />
+                  <input name="ticketCabecera" type="text" value={formNegocio.ticketCabecera} onChange={handleFormChange} placeholder="Ej: Ferretería El Sol" />
                 </div>
                 <div className="form-group">
                   <label>Mensaje de Pie de página</label>
-                  <input name="ticketPie" type="text" defaultValue={negocio.ticketPie ?? "Vuelva pronto"} placeholder="Ej: ¡Los esperamos la próxima!" />
+                  <input name="ticketPie" type="text" value={formNegocio.ticketPie} onChange={handleFormChange} placeholder="Ej: ¡Los esperamos la próxima!" />
                 </div>
+
+                <hr style={{ margin: '25px 0', borderColor: '#e2e8f0' }} />
+
+                {/* 3. Configuración de Inteligencia Artificial */}
+                <div className="seccion-header" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Bot size={20} color="#0284c7" />
+                  <h4 style={{ color: '#0f172a', margin: 0 }}>Reportes Inteligentes (IA)</h4>
+                </div>
+
+                <div className="form-group">
+                  <label className="checkbox-label-premium" style={{ border: formNegocio.reporteIaActivo ? '1px solid #3b82f6' : '1px solid #cbd5e1', backgroundColor: formNegocio.reporteIaActivo ? '#eff6ff' : '#ffffff', padding: '1rem', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                    <input 
+                      type="checkbox" 
+                      name="reporteIaActivo" 
+                      checked={formNegocio.reporteIaActivo} 
+                      onChange={handleFormChange} 
+                      style={{ width: '1.2rem', height: '1.2rem', marginTop: '0.2rem' }}
+                    />
+                    <div className="checkbox-content" style={{ display: 'flex', flexDirection: 'column' }}>
+                      <strong style={{ color: formNegocio.reporteIaActivo ? '#1d4ed8' : '#475569', fontSize: '0.95rem' }}>
+                        {formNegocio.reporteIaActivo ? "Asistente IA Activado" : "Asistente IA Desactivado"}
+                      </strong>
+                      <span style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                        Genera resúmenes gerenciales automáticos sobre tus ventas e inventario.
+                      </span>
+                    </div>
+                  </label>
+                </div>
+
+                {formNegocio.reporteIaActivo && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem', animation: 'fadeIn 0.3s ease-out', backgroundColor: '#f8fafc', padding: '1.25rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label style={{ fontSize: '0.85rem' }}>Frecuencia del Reporte</label>
+                      <div className="input-icon-wrapper" style={{ position: 'relative' }}>
+                        <Calendar size={16} className="text-slate-500" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+                        <select 
+                          name="reporteIaFrecuencia" 
+                          value={formNegocio.reporteIaFrecuencia} 
+                          onChange={handleFormChange}
+                          style={{ width: '100%', padding: '0.65rem 1rem 0.65rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                        >
+                          <option value="DIARIO">Diario (Al cierre de caja)</option>
+                          <option value="SEMANAL">Semanal (Lunes a las 08:00 AM)</option>
+                          <option value="QUINCENAL">Quincenal (Días 1 y 15)</option>
+                          <option value="MENSUAL">Mensual (Día 1 del mes)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label style={{ fontSize: '0.85rem' }}>Canal de Envío</label>
+                      <div className="input-icon-wrapper" style={{ position: 'relative' }}>
+                        <Power size={16} className="text-slate-500" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+                        <select 
+                          name="reporteIaCanal" 
+                          value={formNegocio.reporteIaCanal} 
+                          onChange={handleFormChange}
+                          style={{ width: '100%', padding: '0.65rem 1rem 0.65rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                        >
+                          <option value="EMAIL">Correo Electrónico</option>
+                          <option value="WHATSAPP">WhatsApp</option>
+                          <option value="SISTEMA">Solo Notificaciones en el Sistema</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {formNegocio.reporteIaCanal !== "SISTEMA" && (
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label style={{ fontSize: '0.85rem' }}>Destino ({formNegocio.reporteIaCanal === "WHATSAPP" ? "Número" : "Email"})</label>
+                        <div className="input-icon-wrapper" style={{ position: 'relative' }}>
+                          {formNegocio.reporteIaCanal === "WHATSAPP" ? 
+                            <Smartphone size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#16a34a' }} /> : 
+                            <Mail size={16} className="text-slate-500" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+                          }
+                          <input 
+                            type={formNegocio.reporteIaCanal === "EMAIL" ? "email" : "text"} 
+                            name="reporteIaDestino" 
+                            placeholder={formNegocio.reporteIaCanal === "WHATSAPP" ? "Ej: +54 9 11 1234 5678" : "correo@ejemplo.com"} 
+                            value={formNegocio.reporteIaDestino} 
+                            onChange={handleFormChange}
+                            required
+                            style={{ width: '100%', padding: '0.65rem 1rem 0.65rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              <div className="modal-footer">
+              
+              <div className="modal-footer" style={{ position: 'sticky', bottom: 0, backgroundColor: 'white', borderTop: '1px solid #e2e8f0', padding: '1rem 0' }}>
                 <button type="button" className="btn-cancelar" onClick={() => setMostrarModal(false)}>Cancelar</button>
                 <button type="submit" className="btn-primario">Guardar Cambios</button>
               </div>

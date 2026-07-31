@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { fetchData, postData, putData, deleteData, getNegocio } from "../components/utils/api";
 import { ToastContainer, toast } from "react-toastify";
 import ImportarExcelModal from "./ImportarExcelModal"; 
+import { Sparkles, Package, AlertTriangle, ArrowUpRight, X, Loader2, Star } from "lucide-react";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/modules/InventarioModule.css";
 
@@ -33,12 +34,17 @@ const InventarioView = () => {
   
   const [verEliminados, setVerEliminados] = useState(false);
 
-  // Estado para controlar el modal del Excel
+  // Modal del Excel
   const [mostrarImportar, setMostrarImportar] = useState(false);
 
   // Estados para modales de confirmación
   const [modalConfirm, setModalConfirm] = useState({ isOpen: false, id: null });
   const [modalRestaurar, setModalRestaurar] = useState({ isOpen: false, id: null });
+
+  // --- ESTADOS PARA IA ---
+  const [showModalIA, setShowModalIA] = useState(false);
+  const [respuestaIA, setRespuestaIA] = useState("");
+  const [cargandoIA, setCargandoIA] = useState(false);
 
   // Estados de la paginación
   const [paginaActual, setPaginaActual] = useState(0);
@@ -46,25 +52,22 @@ const InventarioView = () => {
   const [totalElementos, setTotalElementos] = useState(0);
 
   // EFECTO DE CARGA Y BÚSQUEDA (Debounce)
-  // Reemplaza al useEffect vacío. Reacciona cuando cambia la búsqueda o la vista.
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       cargarDatosIniciales(verEliminados, 0, busqueda);
-    }, 500); // Espera 500ms al dejar de escribir
-
+    }, 500);
     return () => clearTimeout(timeoutId);
   }, [busqueda, verEliminados]);
 
   const cargarDatosIniciales = async (mostrarEliminados = verEliminados, pagina = 0, terminoBusqueda = busqueda) => {
     try {
-      // Armamos la URL agregando el parámetro de búsqueda si existe
       const queryBusqueda = terminoBusqueda ? `&buscar=${encodeURIComponent(terminoBusqueda)}` : "";
       const endpoint = mostrarEliminados 
         ? `productos/eliminados?page=${pagina}&size=10${queryBusqueda}` 
         : `productos?page=${pagina}&size=10${queryBusqueda}`;
 
       const [productosData, negocioData] = await Promise.all([
-        fetchData(endpoint, false), // false para que api.js no borre la paginación
+        fetchData(endpoint, false),
         getNegocio(),
       ]);
 
@@ -98,9 +101,8 @@ const InventarioView = () => {
   };
 
   const toggleVistaEliminados = () => {
-    const nuevoEstado = !verEliminados;
-    setVerEliminados(nuevoEstado);
-    setBusqueda(""); // Limpiamos el buscador al cambiar de pestaña
+    setVerEliminados(!verEliminados);
+    setBusqueda(""); 
   };
 
   const abrirNuevo = () => {
@@ -131,15 +133,11 @@ const InventarioView = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setSelectedProducto((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setSelectedProducto((prev) => ({ ...prev, [name]: value }));
   };
 
   const guardarProducto = async (e) => {
     e.preventDefault();
-
     const payload = {
       marca: selectedProducto.marca,
       descripcion: selectedProducto.descripcion,
@@ -152,8 +150,7 @@ const InventarioView = () => {
 
     try {
       if (isEditing) {
-        const id = selectedProducto.id_producto;
-        await putData(`productos/${id}`, payload);
+        await putData(`productos/${selectedProducto.id_producto}`, payload);
         toast.success("Producto actualizado correctamente");
       } else {
         await postData("productos", payload);
@@ -162,14 +159,11 @@ const InventarioView = () => {
       cerrarModal();
       cargarDatosIniciales(verEliminados, paginaActual, busqueda);
     } catch (err) {
-      console.error("Error en la operación:", err);
       toast.error("Error al guardar el producto");
     }
   };
 
-  const confirmarEliminacion = (id) => {
-    setModalConfirm({ isOpen: true, id });
-  };
+  const confirmarEliminacion = (id) => setModalConfirm({ isOpen: true, id });
 
   const ejecutarEliminacion = async () => {
     try {
@@ -177,7 +171,6 @@ const InventarioView = () => {
       toast.info("Producto deshabilitado del inventario");
       cargarDatosIniciales(verEliminados, paginaActual, busqueda);
     } catch (err) {
-      console.error("Error al eliminar:", err);
       toast.error("No se pudo deshabilitar el producto");
     } finally {
       setModalConfirm({ isOpen: false, id: null });
@@ -190,10 +183,25 @@ const InventarioView = () => {
       toast.success("Producto restaurado y activo nuevamente");
       cargarDatosIniciales(verEliminados, paginaActual, busqueda);
     } catch (err) {
-      console.error("Error al restaurar:", err);
       toast.error("No se pudo restaurar el producto");
     } finally {
       setModalRestaurar({ isOpen: false, id: null });
+    }
+  };
+
+  // --- LÓGICA DE LA IA ---
+  const consultarIA = async (tipoConsulta) => {
+    setCargandoIA(true);
+    setRespuestaIA("");
+    try {
+      const payload = { tipo: tipoConsulta };
+      const respuesta = await postData("ia/analizar-inventario", payload);
+      setRespuestaIA(respuesta.mensaje || respuesta.respuesta || "Análisis completado.");
+    } catch (error) {
+      toast.error("Error al conectar con el Asistente de IA.");
+      setRespuestaIA("Lo siento, no pude procesar el inventario en este momento. Intenta de nuevo.");
+    } finally {
+      setCargandoIA(false);
     }
   };
 
@@ -215,11 +223,15 @@ const InventarioView = () => {
           
           {!verEliminados && (
             <>
-              <button 
-                className="btn-secundario" 
-                onClick={() => setMostrarImportar(true)}
-              >
+              <button className="btn-secundario" onClick={() => setMostrarImportar(true)}>
                 Importar Excel
+              </button>
+              
+              <button 
+                className="btn-primario btn-ia-premium" 
+                onClick={() => setShowModalIA(true)}
+              >
+                <Sparkles size={16} /> Analista IA
               </button>
 
               <button className="btn-primario" onClick={abrirNuevo}>
@@ -276,12 +288,8 @@ const InventarioView = () => {
                       </button>
                     ) : (
                       <>
-                        <button className="btn-accion btn-editar" onClick={() => abrirEditar(p)}>
-                          Editar
-                        </button>
-                        <button className="btn-accion btn-eliminar" onClick={() => confirmarEliminacion(p.id_producto || p.id)}>
-                          Eliminar
-                        </button>
+                        <button className="btn-accion btn-editar" onClick={() => abrirEditar(p)}>Editar</button>
+                        <button className="btn-accion btn-eliminar" onClick={() => confirmarEliminacion(p.id_producto || p.id)}>Eliminar</button>
                       </>
                     )}
                   </td>
@@ -300,7 +308,6 @@ const InventarioView = () => {
           </tbody>
         </table>
 
-        {/* CONTROLES DE PAGINACIÓN */}
         {totalElementos > 0 && (
           <div className="paginacion-container">
             <button 
@@ -324,94 +331,121 @@ const InventarioView = () => {
         )}
       </div>
 
-      {/* Modal de Creación/Edición */}
+      {/* --- MODAL: ANALISTA IA --- */}
+      {showModalIA && (
+        <div className="modal-overlay">
+          <div className="modal-content modal-ia-container">
+            <div className="modal-header header-ia">
+              <h3><Sparkles size={22} className="ia-icon-spin" /> Asistente de Inventario IA</h3>
+              <button className="btn-cerrar-ia" onClick={() => setShowModalIA(false)}><X size={20} /></button>
+            </div>
+            
+            <div className="modal-body body-ia">
+              <p className="ia-descripcion">Seleccioná qué tipo de análisis querés realizar sobre tu stock actual. El Asistente de IA procesará los datos en tiempo real.</p>
+              
+              <div className="ia-opciones-grid">
+                <button 
+                  className="ia-opcion-btn" 
+                  onClick={() => consultarIA("REPOSICION")} 
+                  disabled={cargandoIA}
+                  style={{ opacity: cargandoIA ? 0.6 : 1, cursor: cargandoIA ? "not-allowed" : "pointer" }}
+                >
+                  <Package size={24} color="#f97316" />
+                  <strong>Sugerencia de Compras</strong>
+                  <span>Detecta stock crítico y sugiere reposición.</span>
+                </button>
+                <button 
+                  className="ia-opcion-btn" 
+                  onClick={() => consultarIA("ESTANCADOS")}
+                  disabled={cargandoIA}
+                  style={{ opacity: cargandoIA ? 0.6 : 1, cursor: cargandoIA ? "not-allowed" : "pointer" }}
+                >
+                  <AlertTriangle size={24} color="#ef4444" />
+                  <strong>Productos Estancados</strong>
+                  <span>Identifica capital inmovilizado.</span>
+                </button>
+                <button 
+                  className="ia-opcion-btn" 
+                  onClick={() => consultarIA("VALORIZACION")}
+                  disabled={cargandoIA}
+                  style={{ opacity: cargandoIA ? 0.6 : 1, cursor: cargandoIA ? "not-allowed" : "pointer" }}
+                >
+                  <ArrowUpRight size={24} color="#22c55e" />
+                  <strong>Valorización Total</strong>
+                  <span>Calcula el valor de venta del stock actual.</span>
+                </button>
+                <button 
+                  className="ia-opcion-btn" 
+                  onClick={() => consultarIA("ESTRELLAS")}
+                  disabled={cargandoIA}
+                  style={{ opacity: cargandoIA ? 0.6 : 1, cursor: cargandoIA ? "not-allowed" : "pointer" }}
+                >
+                  <Star size={24} color="#eab308" />
+                  <strong>Productos Estrella</strong>
+                  <span>Descubre los artículos más vendidos.</span>
+                </button>
+              </div>
+
+              {cargandoIA && (
+                <div className="ia-cargando" style={{ textAlign: "center", padding: "2rem 0", color: "#64748b" }}>
+                  <Loader2 className="animate-spin" size={36} color="#3b82f6" style={{ margin: "0 auto", animation: "spin 1s linear infinite" }} />
+                  <h4 style={{ marginTop: "15px", color: "#0f172a" }}>Procesando inventario...</h4>
+                  <p style={{ fontSize: "0.9rem" }}>El Asistente de IA está analizando tu base de datos, esto tomará unos segundos.</p>
+                </div>
+              )}
+
+              {respuestaIA && !cargandoIA && (
+                <div className="ia-respuesta">
+                  <h4>Resumen Gerencial</h4>
+                  <div className="ia-respuesta-texto">{respuestaIA}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Resto de modales (Creación, Edición, Importar, Confirmaciones) */}
       {showModal && selectedProducto && (
         <div className="modal-overlay">
           <div className="modal-content form-modal">
-            <div className="modal-header">
-              <h3>{isEditing ? "Editar Producto" : "Nuevo Producto"}</h3>
-            </div>
-
+            <div className="modal-header"><h3>{isEditing ? "Editar Producto" : "Nuevo Producto"}</h3></div>
             <form onSubmit={guardarProducto}>
               <div className="modal-body">
                 <div className="form-group">
                   <label>Marca</label>
-                  <input
-                    type="text"
-                    name="marca"
-                    value={selectedProducto.marca || ""}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input type="text" name="marca" value={selectedProducto.marca || ""} onChange={handleChange} required />
                 </div>
-
                 <div className="form-group">
                   <label>Descripción</label>
-                  <textarea
-                    name="descripcion"
-                    value={selectedProducto.descripcion || ""}
-                    onChange={handleChange}
-                    required
-                  />
+                  <textarea name="descripcion" value={selectedProducto.descripcion || ""} onChange={handleChange} required />
                 </div>
-
                 <div className="form-row">
                   <div className="form-group">
                     <label>Precio Unitario</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      name="precio"
-                      value={selectedProducto.precio || ""}
-                      onChange={handleChange}
-                      required
-                    />
+                    <input type="number" step="0.01" name="precio" value={selectedProducto.precio || ""} onChange={handleChange} required />
                   </div>
-
                   <div className="form-group">
                     <label>Stock Inicial</label>
-                    <input
-                      type="number"
-                      step="0.001"
-                      name="cantidad_stock"
-                      value={selectedProducto.cantidad_stock || ""}
-                      onChange={handleChange}
-                      required
-                    />
+                    <input type="number" step="0.001" name="cantidad_stock" value={selectedProducto.cantidad_stock || ""} onChange={handleChange} required />
                   </div>
                 </div>
-
                 <div className="form-group">
                   <label>Unidad de Medida</label>
-                  <select
-                    name="unidad_medida"
-                    value={selectedProducto.unidad_medida || "UNIDAD"}
-                    onChange={handleChange}
-                    required
-                  >
-                    {UNIDADES.map((u) => (
-                      <option key={u.value} value={u.value}>
-                        {u.label}
-                      </option>
-                    ))}
+                  <select name="unidad_medida" value={selectedProducto.unidad_medida || "UNIDAD"} onChange={handleChange} required>
+                    {UNIDADES.map((u) => (<option key={u.value} value={u.value}>{u.label}</option>))}
                   </select>
                 </div>
               </div>
-
               <div className="modal-footer">
-                <button type="button" className="btn-cancelar" onClick={cerrarModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn-primario">
-                  {isEditing ? "Actualizar Producto" : "Guardar Producto"}
-                </button>
+                <button type="button" className="btn-cancelar" onClick={cerrarModal}>Cancelar</button>
+                <button type="submit" className="btn-primario">{isEditing ? "Actualizar Producto" : "Guardar Producto"}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Modal de Importación de Excel */}
       {mostrarImportar && (
         <ImportarExcelModal
           onClose={() => setMostrarImportar(false)}
@@ -419,37 +453,27 @@ const InventarioView = () => {
         />
       )}
 
-      {/* Modal Oscuro de Confirmación de Eliminación */}
       {modalConfirm.isOpen && (
         <div className="modal-overlay">
           <div className="modal-content modal-confirm">
             <h3>Deshabilitar Producto</h3>
             <p>El producto dejará de estar visible en el inventario activo, pero su historial de ventas se mantendrá intacto.</p>
             <div className="modal-footer">
-              <button className="btn-cancelar" onClick={() => setModalConfirm({ isOpen: false, id: null })}>
-                Cancelar
-              </button>
-              <button className="btn-peligro" onClick={ejecutarEliminacion}>
-                Confirmar
-              </button>
+              <button className="btn-cancelar" onClick={() => setModalConfirm({ isOpen: false, id: null })}>Cancelar</button>
+              <button className="btn-peligro" onClick={ejecutarEliminacion}>Confirmar</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal de Confirmación de Restauración */}
       {modalRestaurar.isOpen && (
         <div className="modal-overlay">
           <div className="modal-content modal-confirm">
             <h3>Restaurar Producto</h3>
             <p>El producto volverá a estar disponible en tu inventario activo para la venta.</p>
             <div className="modal-footer">
-              <button className="btn-cancelar" onClick={() => setModalRestaurar({ isOpen: false, id: null })}>
-                Cancelar
-              </button>
-              <button className="btn-primario" onClick={ejecutarRestauracion}>
-                Restaurar
-              </button>
+              <button className="btn-cancelar" onClick={() => setModalRestaurar({ isOpen: false, id: null })}>Cancelar</button>
+              <button className="btn-primario" onClick={ejecutarRestauracion}>Restaurar</button>
             </div>
           </div>
         </div>

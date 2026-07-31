@@ -39,12 +39,10 @@
 /* ---------------- SIDEBAR (DARK PREMIUM CON SOMBRA) ---------------- */
 .sidebar {
   width: 260px;
-  /* Gradiente oscuro con una levísima transparencia para el blur */
   background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(2, 6, 23, 0.98) 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-right: 1px solid var(--nav-border);
-  /* Sombra clave para separarlo del fondo claro */
   box-shadow: 4px 0 25px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
@@ -60,7 +58,7 @@
   margin-bottom: 2.5rem;
   text-align: center;
   letter-spacing: -0.5px;
-  text-shadow: 0 4px 15px rgba(0,0,0,0.5); /* Le da brillo al logo */
+  text-shadow: 0 4px 15px rgba(0,0,0,0.5); 
 }
 .sidebar-logo span { color: var(--primary); }
 
@@ -126,7 +124,7 @@
   justify-content: space-between;
   padding: 0 2rem;
   border-bottom: 1px solid var(--nav-border);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Sombra hacia abajo */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); 
   position: sticky;
   top: 0;
   z-index: 100;
@@ -282,83 +280,6 @@
   color: #92400e;
 }
 .notas-container li button { background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; padding: 0.5rem; }
-
-/* =========================================
-   RESPONSIVE: Celulares (Sidebar inferior Dark)
-   ========================================= */
-@media screen and (max-width: 1024px) {
-  .sidebar { width: 220px; }
-  .dashboard-content { grid-template-columns: 1fr; }
-}
-
-@media screen and (max-width: 768px) {
-  .dashboard-container { flex-direction: column; }
-  .main-content { padding-bottom: calc(85px + env(safe-area-inset-bottom)); }
-  .topbar { padding: 0 1.25rem; }
-  .view-padding-container { padding: 1.25rem !important; } 
-
-  /* SIDEBAR INFERIOR ESTILO APP (MANTIENE DARK GLASS) */
-  .sidebar {
-    position: fixed;
-    bottom: 0; left: 0; width: 100%;
-    min-height: 75px; height: auto;
-    padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom)) 0.5rem;
-    flex-direction: row;
-    background: rgba(15, 23, 42, 0.98);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid var(--nav-border);
-    border-right: none;
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.15); /* Sombra hacia arriba */
-    z-index: 2000;
-  }
-  .sidebar-logo { display: none; }
-  
-  .sidebar ul {
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: center;
-    width: 100%;
-    gap: 2px;
-  }
-
-  .sidebar li {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 0.5rem 0.1rem;
-    border-radius: 12px;
-    color: var(--nav-text-muted);
-    font-size: 0.65rem;
-    text-align: center;
-  }
-
-  .sidebar li:hover { background: transparent; color: var(--nav-text); }
-  
-  .sidebar li.active {
-    background: transparent;
-    border: none;
-    color: var(--primary);
-    box-shadow: none;
-  }
-  
-  /* Indicador visual superior para mobile */
-  .sidebar li.active::after {
-    content: '';
-    display: block;
-    width: 20px; height: 3px;
-    background: var(--primary);
-    border-radius: 2px;
-    margin-top: 4px;
-    box-shadow: 0 0 8px rgba(249,115,22,0.6); /* Le da brillo extra al indicador en celular */
-  }
-
-  .sidebar li .icon { margin: 0 0 0.2rem 0; font-size: 1.4rem; }
-  
-  .nota-input { flex-direction: column; }
-  .nota-input button { width: 100%; }
-}
 
 /* =========================================
    NUEVO LAYOUT DASHBOARD PREMIUM
@@ -578,12 +499,24 @@
 .clean-table td { font-size: 0.85rem; }
 .text-muted { color: #64748b !important; }
 
-/* --- NEGOCIO DETAILS --- */
+/* --- NEGOCIO DETAILS (Corrección Botón inferior) --- */
+.negocio-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%; 
+}
+
 .negocio-detalles-clean {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  flex: 1; 
 }
+
+.negocio-card .btn-secundario {
+  margin-top: auto; 
+}
+
 .detalle-row {
   display: flex;
   justify-content: space-between;
@@ -596,10 +529,106 @@
 .mt-15 { margin-top: 15px; }
 .w-100 { width: 100%; display: flex; justify-content: center; gap: 8px; align-items: center; }
 
+
+/* --- MURO DE NOTAS (Corrección de diseño) --- */
+.nota-header {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.btn-eliminar-nota {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-eliminar-nota:hover {
+  background-color: #fee2e2;
+  color: #ef4444;
+}
+
+.nota-contenido {
+  display: block;
+  width: 100%;
+  color: #334155;
+  font-size: 0.9rem;
+}
+
+
 /* Responsive adjustments */
 @media screen and (min-width: 1200px) {
   .graficos-grid { grid-template-columns: 1fr 1fr; }
 }
 @media screen and (max-width: 768px) {
   .bottom-grid { grid-template-columns: 1fr; }
+  
+  .sidebar {
+    position: fixed;
+    bottom: 0; left: 0; width: 100%;
+    min-height: 75px; height: auto;
+    padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom)) 0.5rem;
+    flex-direction: row;
+    background: rgba(15, 23, 42, 0.98);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--nav-border);
+    border-right: none;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15); 
+    z-index: 2000;
+  }
+  .sidebar-logo { display: none; }
+  
+  .sidebar ul {
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    gap: 2px;
+  }
+
+  .sidebar li {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem 0.1rem;
+    border-radius: 12px;
+    color: var(--nav-text-muted);
+    font-size: 0.65rem;
+    text-align: center;
+  }
+
+  .sidebar li:hover { background: transparent; color: var(--nav-text); }
+  
+  .sidebar li.active {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    box-shadow: none;
+  }
+  
+  .sidebar li.active::after {
+    content: '';
+    display: block;
+    width: 20px; height: 3px;
+    background: var(--primary);
+    border-radius: 2px;
+    margin-top: 4px;
+    box-shadow: 0 0 8px rgba(249,115,22,0.6); 
+  }
+
+  .sidebar li .icon { margin: 0 0 0.2rem 0; font-size: 1.4rem; }
+  
+  .nota-input { flex-direction: column; }
+  .nota-input button { width: 100%; }
 }

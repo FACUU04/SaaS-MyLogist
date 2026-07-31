@@ -5,17 +5,16 @@ import com.Control.Inventario.dto.ProductoResponseDTO;
 import com.Control.Inventario.entity.Categoria;
 import com.Control.Inventario.entity.Negocio;
 import com.Control.Inventario.entity.Producto;
-// NUEVAS IMPORTACIONES
 import com.Control.Inventario.entity.MovimientoInventario;
 import com.Control.Inventario.entity.TipoMovimiento;
 import com.Control.Inventario.repository.MovimientoInventarioRepository;
-
 import com.Control.Inventario.mapper.ProductoMapper;
 import com.Control.Inventario.repository.CategoriaRepository;
 import com.Control.Inventario.repository.ProductoRepository;
 import com.Control.Inventario.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,7 +28,6 @@ public class ProductoService {
     private final CategoriaRepository categoriaRepository;
     private final UserRepository userRepository;
     private final AuditoriaService auditoriaService;
-    // INYECTAMOS EL NUEVO REPOSITORIO
     private final MovimientoInventarioRepository movimientoInventarioRepository;
 
     public ProductoResponseDTO buscarPorCodigoBarras(String codigoBarras) {
@@ -66,7 +64,7 @@ public class ProductoService {
                 .map(ProductoMapper::toDto);
     }
 
-    @Transactional // Agregamos Transactional para asegurar que se guarde el producto y el movimiento juntos
+    @Transactional
     public ProductoResponseDTO crearProducto(ProductoRequest request) {
         Negocio negocio = obtenerNegocioActual();
         Categoria categoria = null;
@@ -91,7 +89,6 @@ public class ProductoService {
 
         Producto productoGuardado = productoRepository.save(producto);
 
-        // NUEVO: SI EL PRODUCTO SE CREA CON STOCK INICIAL > 0, REGISTRAMOS EL MOVIMIENTO
         if (productoGuardado.getCantidadStock() != null && productoGuardado.getCantidadStock() > 0) {
             MovimientoInventario mov = new MovimientoInventario(
                     productoGuardado,
@@ -99,7 +96,7 @@ public class ProductoService {
                     productoGuardado.getCantidadStock(),
                     TipoMovimiento.AJUSTE_MANUAL,
                     "Stock inicial al crear producto",
-                    obtenerUsuarioActual() // Método auxiliar que creé abajo
+                    obtenerUsuarioActual()
             );
             movimientoInventarioRepository.save(mov);
         }
@@ -112,7 +109,7 @@ public class ProductoService {
         return ProductoMapper.toDto(productoGuardado);
     }
 
-    @Transactional // Fundamental para el Delta
+    @Transactional
     public ProductoResponseDTO actualizarProducto(Long id, ProductoRequest request) {
         Negocio negocio = obtenerNegocioActual();
         Producto producto = productoRepository
@@ -126,7 +123,6 @@ public class ProductoService {
                     .orElseThrow(() -> new RuntimeException("Categoría inválida"));
         }
 
-        // NUEVO: GUARDAMOS EL STOCK ANTERIOR PARA CALCULAR LA DIFERENCIA
         Double stockAnterior = producto.getCantidadStock() != null ? producto.getCantidadStock() : 0.0;
         Double stockNuevo = request.getCantidadStock() != null ? request.getCantidadStock() : 0.0;
         Double diferencia = stockNuevo - stockAnterior;
@@ -137,18 +133,17 @@ public class ProductoService {
         producto.setCodigoBarras(request.getCodigoBarras());
         producto.setStockMinimo(request.getStockMinimo() != null ? request.getStockMinimo() : 0.0);
         producto.setPrecio(request.getPrecio());
-        producto.setCantidadStock(stockNuevo); // Asignamos el nuevo stock
+        producto.setCantidadStock(stockNuevo);
         producto.setUnidad(request.getUnidad());
         producto.setCategoria(categoria);
 
         Producto productoActualizado = productoRepository.save(producto);
 
-        // NUEVO: SI HUBO MODIFICACIÓN DE STOCK, GUARDAMOS EL REGISTRO
         if (diferencia != 0.0) {
             MovimientoInventario mov = new MovimientoInventario(
                     productoActualizado,
                     negocio,
-                    diferencia, // Puede ser positivo o negativo
+                    diferencia,
                     TipoMovimiento.AJUSTE_MANUAL,
                     "Ajuste manual de stock desde el panel",
                     obtenerUsuarioActual()
@@ -196,13 +191,31 @@ public class ProductoService {
         );
     }
 
+    public String obtenerInventarioParaIA() {
+        Negocio negocio = obtenerNegocioActual();
+        Page<Producto> productos = productoRepository.findAllByNegocioAndActivoTrue(negocio, PageRequest.of(0, 500));
+
+        if (productos.isEmpty()) {
+            return "El inventario está completamente vacío.";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Inventario actual:\n");
+        for (Producto p : productos.getContent()) {
+            sb.append("- ").append(p.getDescripcion())
+                    .append(" | Marca: ").append(p.getMarca() != null && !p.getMarca().isEmpty() ? p.getMarca() : "Sin marca")
+                    .append(" | Stock: ").append(p.getCantidadStock())
+                    .append(" | Precio: $").append(p.getPrecio()).append("\n");
+        }
+        return sb.toString();
+    }
+
     private Negocio obtenerNegocioActual() {
         return userRepository.findByUsername(obtenerUsuarioActual())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"))
                 .getNegocio();
     }
 
-    // Método auxiliar para evitar repetir código
     private String obtenerUsuarioActual() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
