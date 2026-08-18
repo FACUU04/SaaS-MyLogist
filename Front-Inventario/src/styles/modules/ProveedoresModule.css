@@ -9,3 +9,63 @@
 @media screen and (max-width: 768px) {
   .form-grid { grid-template-columns: 1fr; }
 }
+
+/* =========================================================================
+   FIX RESPONSIVE: MÓDULO DE PROVEEDORES
+   ========================================================================= */
+
+/* 1. Evita que las tarjetas principales desborden la pantalla */
+.dashboard-content > .card {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* 2. Configura la tabla para que active el scroll horizontal en vez de romper la vista */
+.proveedores-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px; /* Al ser más ancha que el celular, obliga a aparecer al scroll */
+}
+
+/* (Opcional) Le damos un estilo limpio a la tabla para que haga match con el Dashboard */
+.proveedores-table th {
+  padding: 1rem;
+  background-color: #f1f5f9;
+  border-bottom: 2px solid #e2e8f0;
+  text-align: left;
+  font-size: 0.85rem;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.proveedores-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.9rem;
+}
+
+/* 3. Evita que el título y los botones empujen el ancho en celulares */
+.ventas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap; /* Clave: permite que los botones bajen si no hay espacio */
+  gap: 1rem;
+}
+
+/* Específico para celulares (max-width: 768px) */
+@media screen and (max-width: 768px) {
+  /* Apunta al div que contiene los botones "Exportar" y "Añadir" */
+  .ventas-header > div:nth-child(2) {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  /* Hace que los botones ocupen el 100% del ancho para ser más fáciles de tocar */
+  .ventas-header > div:nth-child(2) button {
+    flex: 1;
+    min-width: 140px;
+    justify-content: center;
+  }
+}

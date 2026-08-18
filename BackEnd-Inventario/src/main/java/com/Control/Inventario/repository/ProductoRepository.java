@@ -14,15 +14,15 @@ import java.util.Optional;
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     Page<Producto> findAllByNegocio(Negocio negocio, Pageable pageable);
-
     Page<Producto> findAllByNegocioAndActivoTrue(Negocio negocio, Pageable pageable);
-
     Page<Producto> findAllByNegocioAndActivoFalse(Negocio negocio, Pageable pageable);
-
     Optional<Producto> findByIdAndNegocio(Long id, Negocio negocio);
 
-    // --- NUEVO: Búsqueda exacta para el escáner ---
+    // Búsqueda exacta para el escáner
     Optional<Producto> findByCodigoBarrasAndNegocioAndActivoTrue(String codigoBarras, Negocio negocio);
+
+    // --- NUEVO: Búsqueda para el Matching de la IA (Primera coincidencia aproximada) ---
+    Optional<Producto> findFirstByNegocioAndActivoTrueAndDescripcionContainingIgnoreCase(Negocio negocio, String descripcion);
 
     @Query("SELECT p FROM Producto p WHERE p.negocio = :negocio AND p.activo = :activo AND " +
             "(LOWER(p.marca) LIKE LOWER(CONCAT('%', :busqueda, '%')) OR LOWER(p.descripcion) LIKE LOWER(CONCAT('%', :busqueda, '%')))")

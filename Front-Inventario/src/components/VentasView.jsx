@@ -5,7 +5,7 @@ import Select from "react-select";
 import { ToastContainer, toast } from "react-toastify";
 import { useReactToPrint } from "react-to-print"; 
 import { Barcode, AlertCircle, ShoppingCart, Trash2, CheckCircle2, MessageSquare, Camera } from "lucide-react";
-import { Html5QrcodeScanner } from "html5-qrcode";
+import { Html5QrcodeScanner, Html5QrcodeScanType } from "html5-qrcode";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/modules/VentasModule.css";
 import "../styles/ModalTurno.css"; 
@@ -95,6 +95,9 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
   const [nuevoProductoRapido, setNuevoProductoRapido] = useState({ descripcion: "", precio: "", stock: "1" });
 
   const componentRef = useRef();
+  
+  // Ref para mantener siempre la versión más reciente de la función de escaneo
+  const procesarCodigoRef = useRef();
 
   useEffect(() => {
     cargarTurno();
@@ -107,25 +110,62 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
     }
   }, [turnoActivo, showAltaRapidaModal, showConfirmModal, showCerrarModal, showCamera]);
 
-  // CÁMARA ESCÁNER EFECTO
+  // Actualizar ref en cada render para no perder el estado más reciente de "productos" y "venta"
+  useEffect(() => {
+    procesarCodigoRef.current = procesarCodigoEscaneado;
+  });
+
+  // CÁMARA ESCÁNER EFECTO CORREGIDO CON CATCH Y SÓLO CÁMARA
   useEffect(() => {
     let scanner = null;
+    let tiempoUltimoError = 0; // Control para no espamear el Toast
+
     if (showCamera) {
-      scanner = new Html5QrcodeScanner("reader", { qrbox: { width: 250, height: 200 }, fps: 5 }, false);
-      scanner.render((textoEscaneado) => {
-        scanner.clear();
-        setShowCamera(false);
-        procesarCodigoEscaneado(textoEscaneado);
-      }, (err) => {
-        // Errores de lectura frame a frame, se ignoran
-      });
+      // Pequeño timeout para asegurar que el modal y #reader estén dibujados en el DOM
+      setTimeout(() => {
+        scanner = new Html5QrcodeScanner(
+          "reader", 
+          { 
+            qrbox: { width: 250, height: 200 }, 
+            fps: 10,
+            // Bloqueamos la subida de fotos, forzamos uso de cámara en vivo
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA] 
+          }, 
+          false
+        );
+        
+        scanner.render((textoEscaneado) => {
+          if (scanner) {
+            scanner.clear().then(() => {
+              setShowCamera(false);
+              if (procesarCodigoRef.current) {
+                procesarCodigoRef.current(textoEscaneado);
+              }
+            }).catch(err => console.error("Error al detener cámara:", err));
+          }
+        }, (err) => {
+          // EL CATCH: Interceptamos si al escáner le cuesta leer el código
+          if (typeof err === "string" && err.includes("No MultiFormat Readers")) {
+            const ahora = Date.now();
+            // Lanzamos el toast solo si pasaron más de 3 segundos del último aviso para no molestar visualmente
+            if (ahora - tiempoUltimoError > 3000) {
+              toast.warn("Intentando enfocar... Acerque la cámara o mejore la iluminación del código.", {
+                position: "bottom-center",
+                autoClose: 2000,
+                hideProgressBar: true,
+              });
+              tiempoUltimoError = ahora;
+            }
+          }
+        });
+      }, 150);
     }
     return () => {
       if (scanner) {
-        scanner.clear().catch(e => console.error(e));
+        scanner.clear().catch(e => console.error("Error al desmontar escáner:", e));
       }
     };
-  }, [showCamera, productos]);
+  }, [showCamera]);
 
   const cargarTurno = async () => {
     try {
@@ -430,6 +470,38 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
         </div>
       )}
 
+      {/* MODAL DE ESCÁNER DE CÁMARA */}
+      {showCamera && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <div className="modal-content" style={{ textAlign: 'center', width: '90%', maxWidth: '450px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Camera size={24} /> Escanear Código
+              </h2>
+              <button 
+                className="btn-secundario" 
+                style={{ padding: '5px 10px' }} 
+                onClick={() => setShowCamera(false)}
+              >
+                X
+              </button>
+            </div>
+            
+            <p style={{ color: '#475569', marginBottom: '20px' }}>
+              Dele permisos a su navegador si lo solicita y apunte la cámara al código de barras.
+            </p>
+            
+            <div id="reader" style={{ width: '100%', margin: '0 auto', border: '2px solid #3b82f6', borderRadius: '8px', overflow: 'hidden' }}></div>
+            
+            <div style={{ marginTop: '20px' }}>
+              <button className="btn-cancelar" onClick={() => setShowCamera(false)} style={{ width: '100%' }}>
+                Cancelar Operación
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* HEADER DE VENTAS */}
       <div className="ventas-header" style={{ position: 'relative', zIndex: 10 }}>
         <div>
@@ -465,20 +537,13 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
           
           <button 
             className="btn-secundario" 
-            onClick={() => setShowCamera(!showCamera)}
+            onClick={() => setShowCamera(true)}
             style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}
             title="Escanear con cámara del celular"
           >
-            <Camera size={20} /> {showCamera ? "Ocultar Lente" : "Escanear con Cámara"}
+            <Camera size={20} /> Escanear con Cámara
           </button>
         </div>
-
-        {showCamera && (
-          <div className="card" style={{ marginTop: '15px', padding: '10px', border: '2px solid #3b82f6' }}>
-            <p style={{ margin: '0 0 10px 0', fontSize: '0.85rem', color: '#64748b', textAlign: 'center' }}>Apunte la cámara hacia el código de barras</p>
-            <div id="reader" style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}></div>
-          </div>
-        )}
 
         <div className="form-row-ventas" style={{ marginTop: '15px' }}>
           <div className="input-group-ventas">
@@ -622,7 +687,7 @@ const VentasView = ({ productos = [], setProductos, clientes = [], user, onLogou
         </div>
       )}
 
-      {/* MODAL CERRAR CAJA / TURNO - FIJADO Z-INDEX Y FUNCIÓN */}
+      {/* MODAL CERRAR CAJA / TURNO */}
       {showCerrarModal && (
         <div className="modal-overlay" style={{ zIndex: 2147483647 }}>
           <div className="modal-content modal-caja" style={{ padding: '2rem' }}>

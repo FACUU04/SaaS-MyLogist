@@ -324,3 +324,9 @@
   text-decoration: underline;
 }
 
+/* Ocultar el cartel rojo feo por defecto de html5-qrcode */
+#reader div[style*="background: rgba(255, 0, 0"],
+#reader span[style*="color: red"],
+#reader span[style*="color:red"] {
+    display: none !important;
+}

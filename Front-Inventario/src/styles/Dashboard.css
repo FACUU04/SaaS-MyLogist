@@ -1,6 +1,4 @@
-/* =========================================================================
-   SISTEMA DE DISEÑO HÍBRIDO: NAV DARK PREMIUM + CONTENT LIGHT
-   ========================================================================= */
+/* SISTEMA DE DISEÑO HÍBRIDO: NAV DARK PREMIUM + CONTENT LIGHT */
 :root {
   /* Navegación (Oscuro / Azul Profundo Premium) */
   --nav-bg-solid: #020617; /* Base súper oscura */
@@ -401,10 +399,17 @@
   gap: 1.5rem;
 }
 
+/* --- SOLUCIÓN: CONTENEDOR INFERIOR --- */
 .bottom-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 1.5rem;
+  width: 100%;
+  min-width: 0; /* CORRECCIÓN: Previene que el grid desborde el ancho de la pantalla */
+}
+
+.bottom-grid > .card {
+  min-width: 0; /* CORRECCIÓN: Permite que las tarjetas se adapten y habiliten el scroll interno */
 }
 
 /* Headers de tarjetas genéricas */
@@ -499,7 +504,7 @@
 .clean-table td { font-size: 0.85rem; }
 .text-muted { color: #64748b !important; }
 
-/* --- NEGOCIO DETAILS (Corrección Botón inferior) --- */
+/* --- NEGOCIO DETAILS --- */
 .negocio-card {
   display: flex;
   flex-direction: column;
@@ -530,7 +535,7 @@
 .w-100 { width: 100%; display: flex; justify-content: center; gap: 8px; align-items: center; }
 
 
-/* --- MURO DE NOTAS (Corrección de diseño) --- */
+/* --- MURO DE NOTAS --- */
 .nota-header {
   display: flex;
   justify-content: space-between; 
@@ -570,7 +575,9 @@
   .graficos-grid { grid-template-columns: 1fr 1fr; }
 }
 @media screen and (max-width: 768px) {
-  .bottom-grid { grid-template-columns: 1fr; }
+  .bottom-grid { 
+    grid-template-columns: minmax(0, 1fr); /* CORRECCIÓN: Fuerza a que ocupe máximo el 100% en móviles */
+  }
   
   .sidebar {
     position: fixed;

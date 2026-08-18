@@ -1,5 +1,5 @@
 //const API_BASE = "/api";
-const API_BASE = "http://192.168.0.6:8080/api"; 
+const API_BASE = "http://192.168.0.22:8080/api"; 
 
 // HELPERS
 const handleResponse = async (res) => {
@@ -206,3 +206,18 @@ export const getOrdenesPorProveedor = (idProveedor) => fetchData(`ordenes-compra
 
 // CLIENTE - NOTIFICACIONES 
 export const getMisAvisos = () => fetchData("notificaciones/mis-avisos");
+
+
+// IA - ESCANEO DE FACTURAS
+export const escanearFacturaIA = async (file) => {
+  const formData = new FormData();
+  formData.append("imagen", file);
+
+  const res = await fetch(`${API_BASE}/proveedores/escanear-factura`, {
+    method: "POST",
+    headers: getHeaders(false), // Importante: false para que el navegador asigne el Content-Type multipart con su boundary
+    body: formData,
+  });
+
+  return handleResponse(res);
+};
