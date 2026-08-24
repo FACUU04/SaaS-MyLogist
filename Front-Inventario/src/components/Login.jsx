@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { User, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
-import { loginUser } from "../components/utils/api";
+import { User, Lock, Eye, EyeOff, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { loginUser, requestPasswordReset } from "../components/utils/api";
 import "../styles/Login.css";
 
 export default function Login({ onLoginSuccess }) {
@@ -10,6 +10,7 @@ export default function Login({ onLoginSuccess }) {
   const [forgotEmail, setForgotEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -38,14 +39,22 @@ export default function Login({ onLoginSuccess }) {
   const handleForgotSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     try {
       setLoading(true);
-      // Lógica de recuperación de contraseña
-      console.log("Enviando mail a:", forgotEmail);
-      alert("Si el usuario existe, se enviaron las instrucciones a tu correo.");
-      setView("login");
+      
+      // Llamada usando tu sistema centralizado
+      await requestPasswordReset(forgotEmail);
+
+      // Si no explota, es que salió todo bien
+      setSuccessMessage("Si el usuario existe, se han enviado las instrucciones a tu correo.");
+      setForgotEmail(""); // Limpiamos el input
+      
     } catch (err) {
-      setError(err.message || "Error al procesar la solicitud");
+      // Dejamos el error real en la consola para debugging interno
+      console.error("Error al recuperar contraseña:", err); 
+      // Mostramos un mensaje genérico y seguro al usuario
+      setError("No pudimos procesar la solicitud en este momento. Por favor, inténtalo de nuevo más tarde.");
     } finally {
       setLoading(false);
     }
@@ -60,7 +69,6 @@ export default function Login({ onLoginSuccess }) {
           <>
             <div className="header-section">
               <div className="logo-container">
-                {/* ACÁ VA TU LOGO: Reemplazá "/assets/logo.png" por tu ruta */}
                 <img 
                   src="/icono.png" 
                   alt="MyLogist Logo" 
@@ -95,7 +103,7 @@ export default function Login({ onLoginSuccess }) {
                   <label className="form-label">Contraseña</label>
                   <button 
                     type="button" 
-                    onClick={() => { setView("forgot"); setError(""); }} 
+                    onClick={() => { setView("forgot"); setError(""); setSuccessMessage(""); }} 
                     className="forgot-link"
                   >
                     ¿Olvidaste tu clave?
@@ -131,9 +139,8 @@ export default function Login({ onLoginSuccess }) {
           <>
             <div className="header-section">
               <div className="logo-container">
-                {/* EL MISMO LOGO ACÁ PARA LA VISTA DE RECUPERACIÓN */}
                 <img 
-                  src="/assets/logo.png" 
+                  src="/icono.png" 
                   alt="MyLogist Logo" 
                   className="custom-logo" 
                 />
@@ -143,6 +150,11 @@ export default function Login({ onLoginSuccess }) {
             </div>
 
             {error && <div className="error-message">{error}</div>}
+            {successMessage && (
+              <div className="success-message" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '10px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>
+                <CheckCircle2 size={20} /> {successMessage}
+              </div>
+            )}
 
             <form onSubmit={handleForgotSubmit} className="login-form">
               <div className="form-group">
@@ -166,7 +178,7 @@ export default function Login({ onLoginSuccess }) {
 
               <button 
                 type="button" 
-                onClick={() => { setView("login"); setError(""); }} 
+                onClick={() => { setView("login"); setError(""); setSuccessMessage(""); }} 
                 className="back-to-login"
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '12px' }}
               >

@@ -7,10 +7,13 @@ import com.Control.Inventario.repository.NegocioRepository;
 import com.Control.Inventario.repository.RoleRepository;
 import com.Control.Inventario.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Optional;
 
 @Configuration
 @RequiredArgsConstructor
@@ -20,6 +23,10 @@ public class DataInitializer {
     private final RoleRepository roleRepository;
     private final NegocioRepository negocioRepository;
     private final PasswordEncoder passwordEncoder;
+
+    // Leer variable de entorno. Si no existe (ej. en tu PC local), usa "superadmin123" por defecto.
+    @Value("${SUPERADMIN_PASSWORD:superadmin123}")
+    private String superAdminPassword;
 
     @Bean
     CommandLineRunner initSuperAdmin() {
@@ -38,9 +45,13 @@ public class DataInitializer {
                                     .build()
                     ));
 
-            // Evitar duplicado del superadmin
-            if (userRepository.existsByUsername("superadmin")) {
-                System.out.println("SUPERADMIN ya existe");
+            // Si ya existe, le actualizamos la contraseña para asegurarnos de que tome la de producción
+            Optional<User> existingUser = userRepository.findByUsername("superadmin");
+            if (existingUser.isPresent()) {
+                User superAdmin = existingUser.get();
+                superAdmin.setPasswordHash(passwordEncoder.encode(superAdminPassword));
+                userRepository.save(superAdmin);
+                System.out.println("SUPERADMIN ya existe. Contraseña sincronizada con entorno.");
                 return;
             }
 
@@ -49,17 +60,16 @@ public class DataInitializer {
 
             User superAdmin = User.builder()
                     .username("superadmin")
-                    .passwordHash(passwordEncoder.encode("superadmin123"))
+                    .passwordHash(passwordEncoder.encode(superAdminPassword))
                     .enabled(true)
                     .locked(false)
                     .negocio(sistema)
                     .build();
 
             superAdmin.addRole(superAdminRole);
-
             userRepository.save(superAdmin);
 
-            System.out.println("SUPERADMIN creado correctamente");
+            System.out.println("SUPERADMIN creado correctamente con contraseña de entorno.");
         };
     }
 
@@ -72,5 +82,3 @@ public class DataInitializer {
                 ));
     }
 }
-
-

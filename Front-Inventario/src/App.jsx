@@ -3,6 +3,7 @@ import { useState } from "react";
 import './index.css';
 
 import Login from "./components/Login";
+import ResetPassword from "./components/ResetPassword"; 
 import Dashboard from "./components/Dashboard";
 import DashboardSuperAdmin from "./components/DashboardSuperAdmin";
 import ProtectedRoute from "./components/utils/ProtectedRouted";
@@ -23,8 +24,13 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        
+        {/* RUTAS PÚBLICAS PRIMERO */}
+        
+        {/* 1. Reset Password - Debe estar libre y arriba */}
+        <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* LOGIN */}
+        {/* 2. Login */}
         <Route
           path="/login"
           element={
@@ -36,7 +42,11 @@ function App() {
           }
         />
 
-        {/* SUPERADMIN */}
+        <Route path="/unauthorized" element={<h2>No autorizado</h2>} />
+
+        {/* RUTAS PROTEGIDAS DESPUÉS */}
+
+        {/* 3. SuperAdmin */}
         <Route
           path="/superadmin"
           element={
@@ -46,7 +56,7 @@ function App() {
           }
         />
 
-        {/* ADMIN + USER */}
+        {/* 4. Dashboard (Admin/User) - Ruta raíz al final */}
         <Route
           path="/"
           element={
@@ -55,8 +65,9 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        <Route path="/unauthorized" element={<h2>No autorizado</h2>} />
+        
+        {/* 5. Ruta comodín (opcional, para atrapar errores 404) */}
+        <Route path="*" element={<Navigate to="/" replace />} />
 
       </Routes>
     </BrowserRouter>
@@ -64,6 +75,5 @@ function App() {
 }
 
 export default App;
-
 
 //Facu0408

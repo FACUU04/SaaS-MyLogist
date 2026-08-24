@@ -1,20 +1,16 @@
 package com.Control.Inventario.controller;
 
+import com.Control.Inventario.dto.ForgotPasswordRequest;
 import com.Control.Inventario.dto.LoginRequest;
-import com.Control.Inventario.entity.PasswordResetToken;
-import com.Control.Inventario.entity.User;
-import com.Control.Inventario.repository.PasswordResetTokenRepository;
-import com.Control.Inventario.repository.UserRepository;
+import com.Control.Inventario.dto.ResetPasswordRequest;
 import com.Control.Inventario.service.AuthService;
-import com.Control.Inventario.service.EmailService;
+import com.Control.Inventario.service.PasswordResetService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -22,11 +18,7 @@ import java.util.UUID;
 public class AuthApiController {
 
     private final AuthService authService;
-    // --- ESTAS SON LAS DEPENDENCIAS QUE FALTABAN ---
-    private final UserRepository userRepository;
-    private final PasswordResetTokenRepository tokenRepository;
-    private final EmailService emailService;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
@@ -39,43 +31,20 @@ public class AuthApiController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
-        String email = request.get("email");
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        // El servicio maneja todo. Si el correo no existe, no falla, simula éxito.
+        passwordResetService.generateResetTokenAndSendEmail(request.email());
 
-        // Buscamos al usuario por su email/username
-        User user = userRepository.findByUsername(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        String token = UUID.randomUUID().toString();
-        PasswordResetToken resetToken = new PasswordResetToken(token, user);
-        tokenRepository.save(resetToken);
-
-        String url = "https://app.mylogist.com/reset-password?token=" + token;
-        emailService.sendEmail(email, "Recuperación de contraseña - MyLogist", "Ingresa aquí para cambiar tu contraseña: " + url);
-
-        return ResponseEntity.ok(Map.of("message", "Correo enviado exitosamente"));
+        return ResponseEntity.ok(Map.of("message", "Si el correo está registrado, recibirás un enlace de recuperación."));
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
-        String token = request.get("token");
-        String newPassword = request.get("newPassword");
-
-        PasswordResetToken resetToken = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token inválido"));
-
-        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            return ResponseEntity.status(400).body("El token ha expirado, solicita uno nuevo.");
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            passwordResetService.updatePassword(request.token(), request.newPassword());
+            return ResponseEntity.ok(Map.of("message", "Contraseña actualizada con éxito"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
-
-        User user = resetToken.getUser();
-        // Ciframos la nueva clave antes de guardarla
-        user.setPasswordHash(passwordEncoder.encode(newPassword));
-        user.setPasswordResetRequired(false);
-
-        userRepository.save(user);
-        tokenRepository.delete(resetToken);
-
-        return ResponseEntity.ok(Map.of("message", "Contraseña actualizada con éxito"));
     }
 }

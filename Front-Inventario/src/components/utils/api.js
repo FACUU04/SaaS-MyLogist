@@ -1,5 +1,5 @@
 //const API_BASE = "/api";
-const API_BASE = "http://192.168.0.22:8080/api"; 
+const API_BASE = "http://192.168.0.9:8080/api"; 
 
 // HELPERS
 const handleResponse = async (res) => {
@@ -61,6 +61,11 @@ export const loginUser = async (username, password) => {
   }
 
   return await res.json();
+};
+
+// FUNCIÓN PARA RECUPERAR CONTRASEÑA
+export const requestPasswordReset = async (email) => {
+  return await postData("auth/forgot-password", { email });
 };
 
 

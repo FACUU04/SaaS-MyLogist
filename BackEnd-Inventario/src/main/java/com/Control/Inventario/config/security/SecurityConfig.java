@@ -57,15 +57,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // RESTRICCIÓN DE SEGURIDAD: Solo permitimos ciertas IP
+        // RESTRICCIÓN DE SEGURIDAD: Permitimos el dominio en producción y localhost en desarrollo
         configuration.setAllowedOrigins(List.of(
-                "http://35.175.207.14",
+                "https://mylogistapp.com",
+                "https://www.mylogistapp.com",
                 "http://localhost:5173",
-                "http://192.168.0.14:5173",
-                "http://192.168.0.6:5173",
-                "http://192.168.0.22:5173",
-                "http://192.168.0.22:8080",
-                "http://localhost"
+                "http://192.168.0.9:5173",
+                "http://192.168.0.9:8080"
         ));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
