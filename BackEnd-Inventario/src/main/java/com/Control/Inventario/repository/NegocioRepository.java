@@ -15,7 +15,13 @@ public interface NegocioRepository extends JpaRepository<Negocio, Long> {
     @Query("SELECT n FROM Negocio n WHERE n.estadoSuscripcion = 'PRUEBA' AND n.activo = true ORDER BY n.fechaAlta ASC")
     List<Negocio> findNegociosEnPruebaOrdenadosPorAntiguedad();
 
+    // NUEVO: Para la tarea automática que suspende vencidos
+    List<Negocio> findByEstadoSuscripcionAndActivo(String estadoSuscripcion, boolean activo);
+
     // Consultas útiles para los gráficos del dashboard
     long countByEstadoSuscripcion(String estadoSuscripcion);
     long countByActivo(boolean activo);
+
+    // Buscar negocios activos que tengan la IA encendida
+    List<Negocio> findByReporteIaActivoTrueAndActivoTrue();
 }

@@ -18,7 +18,8 @@ public class Notificacion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 500)
+    // 🔥 CAMBIO CLAVE: Usamos columnDefinition = "TEXT" para que soporte el reporte completo de la IA
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String mensaje;
 
     @Column(name = "nivel_alerta", nullable = false, length = 20)

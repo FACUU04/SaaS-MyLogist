@@ -62,8 +62,8 @@ public class SecurityConfig {
                 "https://mylogistapp.com",
                 "https://www.mylogistapp.com",
                 "http://localhost:5173",
-                "http://192.168.0.9:5173",
-                "http://192.168.0.9:8080"
+                "http://192.168.0.5:5173",
+                "http://192.168.0.5:8080"
         ));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

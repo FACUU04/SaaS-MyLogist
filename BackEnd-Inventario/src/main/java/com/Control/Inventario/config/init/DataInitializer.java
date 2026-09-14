@@ -13,8 +13,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Optional;
-
 @Configuration
 @RequiredArgsConstructor
 public class DataInitializer {
@@ -24,7 +22,7 @@ public class DataInitializer {
     private final NegocioRepository negocioRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // Leer variable de entorno. Si no existe (ej. en tu PC local), usa "superadmin123" por defecto.
+    // Leer variable de entorno. Si no existe, usa "superadmin123" por defecto.
     @Value("${SUPERADMIN_PASSWORD:superadmin123}")
     private String superAdminPassword;
 
@@ -45,13 +43,9 @@ public class DataInitializer {
                                     .build()
                     ));
 
-            // Si ya existe, le actualizamos la contraseña para asegurarnos de que tome la de producción
-            Optional<User> existingUser = userRepository.findByUsername("superadmin");
-            if (existingUser.isPresent()) {
-                User superAdmin = existingUser.get();
-                superAdmin.setPasswordHash(passwordEncoder.encode(superAdminPassword));
-                userRepository.save(superAdmin);
-                System.out.println("SUPERADMIN ya existe. Contraseña sincronizada con entorno.");
+            // Si ya existe, NO HACE NADA. Así preservamos la contraseña segura que esté en MySQL.
+            if (userRepository.existsByUsername("superadmin")) {
+                System.out.println("SUPERADMIN ya existe en la base de datos. Omitiendo creación y actualización.");
                 return;
             }
 
@@ -69,7 +63,7 @@ public class DataInitializer {
             superAdmin.addRole(superAdminRole);
             userRepository.save(superAdmin);
 
-            System.out.println("SUPERADMIN creado correctamente con contraseña de entorno.");
+            System.out.println("SUPERADMIN creado correctamente.");
         };
     }
 

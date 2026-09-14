@@ -1,5 +1,5 @@
-//const API_BASE = "/api";
-const API_BASE = "http://192.168.0.9:8080/api"; 
+const API_BASE = "/api";
+
 
 // HELPERS
 const handleResponse = async (res) => {
@@ -225,4 +225,24 @@ export const escanearFacturaIA = async (file) => {
   });
 
   return handleResponse(res);
+};
+
+// Actualizar suscripción del negocio (PAGO o PRUEBA extendida)
+export const actualizarSuscripcionNegocio = async (id, estado, diasExtra = 0) => {
+    // Usamos el token del superadmin
+    const token = localStorage.getItem("superAdminToken") || localStorage.getItem("token");
+    
+    // Cambia la ruta base si tu backend tiene otra distinta
+    const response = await fetch(`/api/superadmin/negocios/${id}/suscripcion?estado=${estado}&diasExtra=${diasExtra}`, {
+        method: "PUT",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || "Error al actualizar la suscripción");
+    }
+    return response.text();
 };

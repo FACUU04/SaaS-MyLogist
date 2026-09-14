@@ -458,7 +458,6 @@ const DashboardView = () => {
                           style={{ width: '100%', padding: '0.65rem 1rem 0.65rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                         >
                           <option value="EMAIL">Correo Electrónico</option>
-                          <option value="WHATSAPP">WhatsApp</option>
                           <option value="SISTEMA">Solo Notificaciones en el Sistema</option>
                         </select>
                       </div>
@@ -466,16 +465,13 @@ const DashboardView = () => {
 
                     {formNegocio.reporteIaCanal !== "SISTEMA" && (
                       <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label style={{ fontSize: '0.85rem' }}>Destino ({formNegocio.reporteIaCanal === "WHATSAPP" ? "Número" : "Email"})</label>
+                        <label style={{ fontSize: '0.85rem' }}>Email de Destino</label>
                         <div className="input-icon-wrapper" style={{ position: 'relative' }}>
-                          {formNegocio.reporteIaCanal === "WHATSAPP" ? 
-                            <Smartphone size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#16a34a' }} /> : 
-                            <Mail size={16} className="text-slate-500" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
-                          }
+                          <Mail size={16} className="text-slate-500" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
                           <input 
-                            type={formNegocio.reporteIaCanal === "EMAIL" ? "email" : "text"} 
+                            type="email" 
                             name="reporteIaDestino" 
-                            placeholder={formNegocio.reporteIaCanal === "WHATSAPP" ? "Ej: +54 9 11 1234 5678" : "correo@ejemplo.com"} 
+                            placeholder="correo@ejemplo.com" 
                             value={formNegocio.reporteIaDestino} 
                             onChange={handleFormChange}
                             required

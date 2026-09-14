@@ -8,6 +8,23 @@ import { getSADashboardStats, getSystemMetrics, getAvisosSA } from "../component
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import "../styles/modules/DashboardSuperAdmin.css";
 
+// Función para calcular cuántos días le quedan de prueba
+const calcularDiasRestantes = (fechaAlta, diasTotales) => {
+  if (!fechaAlta || diasTotales == null) return 0;
+  
+  const inicio = new Date(fechaAlta);
+  const hoy = new Date();
+  
+  inicio.setHours(0, 0, 0, 0);
+  hoy.setHours(0, 0, 0, 0);
+  
+  const diferenciaTiempo = hoy.getTime() - inicio.getTime();
+  const diasTranscurridos = Math.floor(diferenciaTiempo / (1000 * 60 * 60 * 24));
+  
+  const restantes = diasTotales - diasTranscurridos;
+  return restantes > 0 ? restantes : 0;
+};
+
 export default function DashboardSuperAdmin() {
   const [view, setView] = useState("dashboard");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -154,7 +171,9 @@ export default function DashboardSuperAdmin() {
                         <tr key={n.id} style={{ borderBottom: '1px solid var(--sa-glass-border)' }}>
                           <td style={{ padding: '0.75rem 0.5rem', fontWeight: '500' }}>{n.nombre}</td>
                           <td style={{ padding: '0.75rem 0.5rem', color: 'var(--sa-text-muted)' }}>{n.fechaAlta}</td>
-                          <td style={{ padding: '0.75rem 0.5rem', color: 'var(--sa-warning)' }}>{n.diasPrueba}</td>
+                          <td style={{ padding: '0.75rem 0.5rem', color: 'var(--sa-warning)', fontWeight: 'bold' }}>
+                            {calcularDiasRestantes(n.fechaAlta, n.diasPrueba)} días
+                          </td>
                         </tr>
                       ))}
                     </tbody>

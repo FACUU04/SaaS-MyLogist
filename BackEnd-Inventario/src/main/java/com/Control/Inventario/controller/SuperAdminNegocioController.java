@@ -118,9 +118,7 @@ public class SuperAdminNegocioController {
         if (request.getTicketCabecera() != null) negocio.setTicketCabecera(request.getTicketCabecera());
         if (request.getTicketPie() != null) negocio.setTicketPie(request.getTicketPie());
 
-        // Si desde el SuperAdmin editás los días de prueba o el estado
         if (request.getDiasPrueba() != null) negocio.setDiasPrueba(request.getDiasPrueba());
-        // Acá podríamos agregar también editar el estadoSuscripcion si lo mandás en el request futuro
 
         negocioRepository.save(negocio);
 
@@ -146,6 +144,33 @@ public class SuperAdminNegocioController {
                                 ? "Negocio activado"
                                 : "Negocio desactivado"
                 )
+        );
+    }
+
+    // --- NUEVO: ACTUALIZAR PLAN / SUSCRIPCIÓN ---
+    @PutMapping("/{id}/suscripcion")
+    public ResponseEntity<?> actualizarSuscripcion(
+            @PathVariable Long id,
+            @RequestParam String estado,
+            @RequestParam(required = false, defaultValue = "0") Integer diasExtra
+    ) {
+        Negocio negocio = negocioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Negocio no encontrado"));
+
+        negocio.setEstadoSuscripcion(estado);
+        // Si le renovamos o mejoramos el plan, lo activamos automáticamente por si estaba suspendido
+        negocio.setActivo(true);
+
+        // Si es prueba y mandan días extra, se los sumamos a los días totales
+        // (Ej: Si tenía 30 días, y le das 15 más, ahora tendrá 45 días totales desde su fechaAlta)
+        if ("PRUEBA".equals(estado) && diasExtra > 0) {
+            negocio.setDiasPrueba(negocio.getDiasPrueba() + diasExtra);
+        }
+
+        negocioRepository.save(negocio);
+
+        return ResponseEntity.ok(
+                Map.of("message", "Suscripción actualizada correctamente")
         );
     }
 
