@@ -2,9 +2,11 @@ package com.Control.Inventario.controller;
 
 import com.Control.Inventario.dto.ForgotPasswordRequest;
 import com.Control.Inventario.dto.LoginRequest;
+import com.Control.Inventario.dto.RegisterRequestDTO;
 import com.Control.Inventario.dto.ResetPasswordRequest;
 import com.Control.Inventario.service.AuthService;
 import com.Control.Inventario.service.PasswordResetService;
+import com.Control.Inventario.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ public class AuthApiController {
 
     private final AuthService authService;
     private final PasswordResetService passwordResetService;
+    private final UserService userService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
@@ -30,11 +33,25 @@ public class AuthApiController {
         return authService.refresh(refreshToken);
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDTO request) {
+        try {
+            userService.registrarNuevoNegocioCompleto(
+                    request.username(),
+                    request.negocioName(),
+                    request.contactType(),
+                    request.contactValue(),
+                    request.password()
+            );
+            return ResponseEntity.ok(Map.of("message", "¡Cuenta creada con éxito! Ya puedes iniciar sesión."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        // El servicio maneja todo. Si el correo no existe, no falla, simula éxito.
         passwordResetService.generateResetTokenAndSendEmail(request.email());
-
         return ResponseEntity.ok(Map.of("message", "Si el correo está registrado, recibirás un enlace de recuperación."));
     }
 

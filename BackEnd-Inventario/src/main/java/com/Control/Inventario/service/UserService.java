@@ -7,6 +7,7 @@ import com.Control.Inventario.entity.Negocio;
 import com.Control.Inventario.entity.Role;
 import com.Control.Inventario.entity.User;
 import com.Control.Inventario.repository.EmpleadoRepository;
+import com.Control.Inventario.repository.NegocioRepository;
 import com.Control.Inventario.repository.RoleRepository;
 import com.Control.Inventario.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,11 +27,85 @@ public class UserService {
     private final EmpleadoRepository empleadoRepo;
     private final PasswordEncoder encoder;
 
+    // Inyectamos lo necesario para el nuevo registro de Negocios
+    private final NegocioRepository negocioRepo;
+    private final EmailService emailService;
+
     public User crearAdminInicial(String username, String password, Negocio negocio) {
         Role role = roleRepo.findByName("ROLE_ADMIN").orElseThrow(() -> new RuntimeException("Rol ADMIN no existe"));
         User user = User.builder().username(username).passwordHash(encoder.encode(password)).enabled(true).locked(false).negocio(negocio).build();
         user.addRole(role);
         return userRepo.save(user);
+    }
+
+    // =========================================================================
+    // NUEVO: REGISTRO COMPLETO DESDE LA LANDING PAGE
+    // =========================================================================
+    @Transactional
+    public User registrarNuevoNegocioCompleto(String username, String negocioName, String contactType, String contactValue, String password) {
+
+        if (userRepo.existsByUsername(username)) {
+            throw new RuntimeException("El nombre de usuario ya está en uso. Por favor, elige otro.");
+        }
+
+        if (negocioRepo.findByNombre(negocioName).isPresent()) {
+            throw new RuntimeException("El nombre del negocio ya está registrado.");
+        }
+
+        Negocio nuevoNegocio = new Negocio();
+        nuevoNegocio.setNombre(negocioName);
+        nuevoNegocio.setActivo(true);
+        nuevoNegocio.setEstadoSuscripcion("PRUEBA");
+        nuevoNegocio.setDiasPrueba(14);
+
+        if ("email".equalsIgnoreCase(contactType)) {
+            nuevoNegocio.setContactoEmail(contactValue);
+        } else {
+            nuevoNegocio.setTelefono(contactValue);
+        }
+
+        Negocio negocioGuardado = negocioRepo.save(nuevoNegocio);
+
+        Role roleAdmin = roleRepo.findByName("ROLE_ADMIN")
+                .orElseThrow(() -> new RuntimeException("El rol ADMIN no existe en la base de datos"));
+
+        User nuevoAdmin = User.builder()
+                .username(username)
+                .passwordHash(encoder.encode(password))
+                .enabled(true)
+                .locked(false)
+                .negocio(negocioGuardado)
+                .permisoVentas(true)
+                .permisoInventario(true)
+                .permisoProveedores(true)
+                .build();
+
+        nuevoAdmin.addRole(roleAdmin);
+        User usuarioGuardado = userRepo.save(nuevoAdmin);
+
+        // Envío de correos
+        if ("email".equalsIgnoreCase(contactType) && contactValue != null) {
+            String subjectBienvenida = "¡Bienvenido a MyLogist, " + negocioName + "!";
+            String bodyBienvenida = "Hola,\n\n" +
+                    "Tu cuenta de prueba gratuita por 14 días ya está activa.\n\n" +
+                    "Para sacarle el máximo provecho, te sugerimos ver nuestro video de introducción rápido:\n" +
+                    "📺 [AQUI_PONDREMOS_EL_LINK_DEL_VIDEO]\n\n" +
+                    "Accede a tu panel desde: https://www.mylogist.com\n\n" +
+                    "¡Mucho éxito,\nFacundo de MyLogist!";
+
+            emailService.sendEmail(contactValue, subjectBienvenida, bodyBienvenida);
+        }
+
+        String subjectAdmin = "🔥 NUEVO CLIENTE: " + negocioName;
+        String bodyAdmin = "Se ha registrado una nueva cuenta en MyLogist.\n\n" +
+                "Negocio: " + negocioName + "\n" +
+                "Usuario: " + username + "\n" +
+                "Vía de contacto: " + contactType + "\n" +
+                "Dato: " + contactValue;
+
+        emailService.sendEmail("contactomylogist@gmail.com", subjectAdmin, bodyAdmin);
+
+        return usuarioGuardado;
     }
 
     @Transactional
@@ -65,7 +140,6 @@ public class UserService {
         return mapToResponse(userRepo.save(nuevoEmpleado));
     }
 
-    // NUEVO: Método para actualizar
     @Transactional
     public EmpleadoResponseDTO actualizarEmpleado(Long id, EmpleadoRequestDTO request, String adminUsername) {
         User adminLogueado = userRepo.findByUsername(adminUsername).orElseThrow(() -> new RuntimeException("Admin no encontrado"));
@@ -98,7 +172,6 @@ public class UserService {
         return mapToResponse(userRepo.save(empleadoUser));
     }
 
-    // NUEVO: Método para eliminar
     @Transactional
     public void eliminarEmpleado(Long id, String adminUsername) {
         User adminLogueado = userRepo.findByUsername(adminUsername).orElseThrow(() -> new RuntimeException("Admin no encontrado"));
