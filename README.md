@@ -35,7 +35,7 @@ graph LR
 ### 🎯 Dimensión del Proyecto
 MyLogist no es un simple CRUD; es una herramienta empresarial completa diseñada para escalar:
 - **Experiencia Multiplataforma:** Interfaz 100% responsive. Gestioná tu stock, auditá movimientos y revisá ventas desde un smartphone con la misma potencia que en una PC.
-- **Ciclo de Caja Profesional:** Control de apertura y cierre de turnos con validación física, generación automática de tickets de venta y analítica dinámica de evolución mensual.
+- **Ciclo de Caja Profesional:** Control de turnos con **arqueo de caja (declaración de efectivo físico y justificación de discrepancias)**, generación automática de tickets de venta y analítica de evolución mensual.
 - **Trazabilidad Total:** Historial de movimientos inalterable para garantizar la absoluta transparencia del negocio.
 
 ### 🧠 Desafíos Técnicos y Seguridad Avanzada (Backend Highlight)
@@ -51,7 +51,7 @@ Para garantizar una calidad a nivel Enterprise, el backend fue diseñado con un 
 **Prerrequisitos:** Java 17, Node.js y MySQL.
 
 1. **Clonar el repositorio:**
-   `git clone https://github.com/FACUU04/Web_Inventario.git`
+   `git clone https://github.com/FACUU04/SaaS-MyLogis.git`
 2. **Configurar Base de Datos:**
    Crear una base de datos MySQL llamada `mylogist_db` y configurar las credenciales en `application.properties`.
 3. **Levantar el Backend (Spring Boot):**
@@ -79,7 +79,7 @@ graph LR
 ### 🎯 Scope & Dimension
 MyLogist isn't just a CRUD app; it's a full-fledged business tool designed for scale:
 - **Multi-Platform Experience:** 100% responsive interface. Manage stock, audit movements, and review sales from a smartphone with the same power as a desktop.
-- **Professional Cash Cycle:** Controls shift openings/closings with physical validation, automatic generation of professional sales receipts, and monthly dynamic sales analytics.
+- **Professional Cash Cycle:** Controls shift openings/closings with **physical cash reconciliation and discrepancy reporting**, automatic generation of professional sales receipts, and monthly dynamic sales analytics.
 - **Traceability:** Immutable movement history to ensure complete business transparency.
 
 ### 🧠 Technical Challenges & Advanced Security (Backend Highlight)
@@ -95,7 +95,7 @@ To ensure enterprise-level quality, the backend was designed with a strict focus
 **Prerequisites:** Java 17, Node.js, and MySQL.
 
 1. **Clone the repository:**
-   `git clone https://github.com/FACUU04/Web_Inventario.git`
+   `git clone https://github.com/FACUU04/SaaS-MyLogis.git`
 2. **Database Setup:**
    Create a MySQL database named `mylogist_db` and configure your credentials in `application.properties`.
 3. **Run Backend (Spring Boot):**
